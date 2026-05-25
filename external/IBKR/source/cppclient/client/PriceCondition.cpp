@@ -1,0 +1,73 @@
+﻿/* Copyright (C) 2025 Interactive Brokers LLC. All rights reserved. This code is subject to the terms
+ * and conditions of the IB API Non-Commercial License or the IB API Commercial License, as applicable. */
+
+#include "StdAfx.h"
+#include "PriceCondition.h"
+#include "EDecoder.h"
+#include "EClient.h"
+
+#include <sstream>
+
+std::string PriceCondition::valueToString() const {
+	std::stringstream tmp;
+
+	tmp << m_price;
+
+	return tmp.str();
+}
+
+void PriceCondition::valueFromString(const std::string & v) {
+	std::stringstream tmp;
+
+	tmp << v;
+	tmp >> m_price;
+}
+
+double PriceCondition::price() {
+	return m_price;
+}
+
+void PriceCondition::price(double price) {
+	m_price = price;
+}
+
+std::string PriceCondition::toString() {
+	return strTriggerMethod() + " " + ContractCondition::toString();
+}
+
+PriceCondition::Method PriceCondition::triggerMethod() {
+	return (Method)m_triggerMethod;
+}
+
+std::string PriceCondition::strTriggerMethod() {
+	static std::string mthdNames[] = { "default", "double bid/ask", "last", "double last", "bid/ask", "", "", "last of bid/ask", "mid-point" };
+	int idx = triggerMethod();
+
+	if (idx < 0 || idx >= (int)(sizeof(mthdNames) / sizeof(mthdNames[0])))
+		return "";
+
+	return mthdNames[idx];
+}
+
+void PriceCondition::triggerMethod(Method triggerMethod) {
+	m_triggerMethod = triggerMethod;
+}
+
+void PriceCondition::triggerMethod(int triggerMethod) {
+	m_triggerMethod = triggerMethod;
+}
+
+const char* PriceCondition::readExternal(const char* ptr, const char* endPtr) {
+	if (!(ptr = ContractCondition::readExternal(ptr, endPtr)))
+		return 0;
+
+	DECODE_FIELD(m_triggerMethod)
+
+	return ptr;
+}
+
+void PriceCondition::writeExternal(std::ostream & msg) const {
+	ContractCondition::writeExternal(msg);
+
+	ENCODE_FIELD(m_triggerMethod);
+}
