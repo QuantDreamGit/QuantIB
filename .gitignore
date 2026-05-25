@@ -1,0 +1,23 @@
+# Build directories
+build/
+
+# CMake
+CMakeUserPresets.json
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+
+# Ninja
+.ninja_deps
+.ninja_log
+
+# Binaries
+*.o
+*.obj
+*.a
+*.so
+*.dll
+*.dylib
+*.exe
