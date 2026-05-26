@@ -21,3 +21,6 @@ compile_commands.json
 *.dll
 *.dylib
 *.exe
+
+# Cache files
+.cache/
