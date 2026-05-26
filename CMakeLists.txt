@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.5)
 
 project(
     quantib
@@ -23,7 +23,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Builds the official IBKR TWS C++ API.
 # Expected path: external/IBKR/CMakeLists.txt
-add_subdirectory(external/IBKR)
+add_subdirectory(external/IBKR/source/cppclient/client)
 
 # =========================
 # Library
@@ -36,6 +36,7 @@ add_library(quantib
 target_include_directories(quantib
     PUBLIC
         ${PROJECT_SOURCE_DIR}/include
+        ${PROJECT_SOURCE_DIR}/external/IBKR/source/cppclient/client
 )
 
 target_link_libraries(quantib
