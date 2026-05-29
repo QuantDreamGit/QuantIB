@@ -18,7 +18,6 @@ public:
 
   void nextValidId(int orderId) override {
     if (hub_->containsKey(typeid(connectTag))) {
-      std::cout << "Test";
       hub_->send(typeid(connectTag), orderId);
     } else
       hub_->send(typeid(nextValidIdTag), orderId);
