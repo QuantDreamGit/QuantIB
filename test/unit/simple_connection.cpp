@@ -1,15 +1,14 @@
 #include <cassert>
-#include <ostream>
+#include <optional>
 
 #include "quantib/core/ib.hpp"
 
 int main() {
+  // create client
   auto ib = new IB();
-
-  auto isConnect = ib->connect();
-
-  std::cout << isConnect.value() << std::endl;
-  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-
+  // Get an optional<int>
+  std::optional<int> isConnect = ib->connect();
+  // Assert
+  assert(isConnect.has_value() == true);
   return 0;
 }
