@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.16)
 
 project(
     quantib
@@ -7,10 +7,6 @@ project(
     LANGUAGES CXX
 )
 
-# =========================
-# C++ Standard
-# =========================
-
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -18,15 +14,18 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # =========================
-# Dependencies
+# IBKR TWS API
 # =========================
 
-# Builds the official IBKR TWS C++ API.
-# Expected path: external/IBKR/CMakeLists.txt
-add_subdirectory(external/IBKR/source/cppclient/client)
+set(IBKR_DIR "${CMAKE_SOURCE_DIR}/external/IBJts")
+
+add_subdirectory(
+    "${IBKR_DIR}/source/cppclient/client"
+    "${CMAKE_BINARY_DIR}/IBJts-client-build"
+)
 
 # =========================
-# Library
+# QuantIB library
 # =========================
 
 add_library(quantib
@@ -35,8 +34,9 @@ add_library(quantib
 
 target_include_directories(quantib
     PUBLIC
-        ${PROJECT_SOURCE_DIR}/include
-        ${PROJECT_SOURCE_DIR}/external/IBKR/source/cppclient/client
+        "${PROJECT_SOURCE_DIR}/include"
+        "${IBKR_DIR}/source/cppclient/client"
+        "${IBKR_DIR}/source/cppclient/client/protobufUnix"
 )
 
 target_link_libraries(quantib
@@ -47,10 +47,10 @@ target_link_libraries(quantib
 target_compile_features(quantib PUBLIC cxx_std_23)
 
 # =========================
-# Compiler Warnings
+# Compiler warnings
 # =========================
 
-if (MSVC)
+if(MSVC)
     target_compile_options(quantib PRIVATE /W4)
 else()
     target_compile_options(quantib PRIVATE
@@ -70,14 +70,14 @@ enable_testing()
 
 file(GLOB_RECURSE TEST_SOURCES
     CONFIGURE_DEPENDS
-    ${PROJECT_SOURCE_DIR}/test/*.cpp
+    "${PROJECT_SOURCE_DIR}/test/*.cpp"
 )
 
 foreach(TEST_SOURCE ${TEST_SOURCES})
-    get_filename_component(TEST_NAME ${TEST_SOURCE} NAME_WE)
+    get_filename_component(TEST_NAME "${TEST_SOURCE}" NAME_WE)
 
     add_executable(${TEST_NAME}
-        ${TEST_SOURCE}
+        "${TEST_SOURCE}"
     )
 
     target_link_libraries(${TEST_NAME}
