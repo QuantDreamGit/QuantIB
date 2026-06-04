@@ -21,20 +21,30 @@ set(IBKR_DIR "${CMAKE_SOURCE_DIR}/external/IBJts")
 
 add_subdirectory(
     "${IBKR_DIR}/source/cppclient/client"
-    "${CMAKE_BINARY_DIR}/IBJts-client-build"
 )
 
 # =========================
 # QuantIB library
 # =========================
 
+file(GLOB_RECURSE QUANTIB_SOURCES
+        CONFIGURE_DEPENDS
+        "${PROJECT_SOURCE_DIR}/src/*.cpp"
+)
+
+file(GLOB_RECURSE QUANTIB_HEADERS
+        CONFIGURE_DEPENDS
+        "${PROJECT_SOURCE_DIR}/include/*.hpp"
+)
+
 add_library(quantib
-    src/dummy.cpp
+        ${QUANTIB_SOURCES}
+        ${QUANTIB_HEADERS}
 )
 
 target_include_directories(quantib
     PUBLIC
-        "${PROJECT_SOURCE_DIR}/include"
+    "${PROJECT_SOURCE_DIR}/include"
         "${IBKR_DIR}/source/cppclient/client"
         "${IBKR_DIR}/source/cppclient/client/protobufUnix"
 )
