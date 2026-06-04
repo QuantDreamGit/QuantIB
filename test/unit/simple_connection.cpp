@@ -1,7 +1,7 @@
 #include <cassert>
 #include <optional>
 
-#include "quantib/core/ib.hpp"
+#include "quantib/sync/ib.hpp"
 
 int main() {
   // create client
