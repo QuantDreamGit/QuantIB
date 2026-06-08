@@ -29,7 +29,7 @@
 
 class AccountSummary {
 public:
-	int reqId;
+	int reqId{-1};
 	std::string account;
 	std::unordered_map<std::string, std::string> attributes;
 	std::string currency;

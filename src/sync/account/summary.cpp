@@ -12,7 +12,6 @@ void IB::accountSummarySub(
 }
 
 void IB::accountSummaryCancel() const {
-	std::type_index idx = typeid(AccountSummaryTag);
 	const int reqId = obj_->get<AccountSummaryTag, AccountSummary>().reqId;
 	client_->cancelAccountSummary(reqId);
 	LOG_DEBUG_TAG(IB_STR, "Account Summary subscription cancelled.");
