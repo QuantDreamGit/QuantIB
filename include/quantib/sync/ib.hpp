@@ -62,9 +62,13 @@ public:
 		return std::nullopt;
 	}
 
+
+	/* Account Summary Subscription */
 	void accountSummarySub(
 		const std::string &tags = ACCOUNT_SUMMARY_ESSENTIAL_TAGS,
 		const std::string &groups = "All");
+
+	void accountSummaryCancel() const;
 
 protected:
 	std::shared_ptr<Logger> logger_;

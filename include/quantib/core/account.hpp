@@ -29,12 +29,14 @@
 
 class AccountSummary {
 public:
-  std::string account;
-  std::unordered_map<std::string, std::string> attributes;
-  std::string currency;
+	int reqId;
+	std::string account;
+	std::unordered_map<std::string, std::string> attributes;
+	std::string currency;
 
-  AccountSummary() = default;
-  void update(const std::string &tag, const std::string &value) {
-    attributes[tag] = value;
-  }
+	AccountSummary() = default;
+
+	void update(const std::string &tag, const std::string &value) {
+		attributes[tag] = value;
+	}
 };

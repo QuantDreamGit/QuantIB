@@ -37,12 +37,10 @@ public:
 		std::cout << account << std::endl;
 	}
 
-	void accountSummaryEnd(int reqId) override {
-		std::cout << "End of summary update!" << std::endl;
-	}
-
+	/* Account Summary Subscription */
 	void accountSummary(int reqId, const std::string &account, const std::string &tag, const std::string &value,
 	                    const std::string &currency) override;
+	void accountSummaryEnd(int reqId) override;
 
 private:
 	std::shared_ptr<BlockingHub> hub_;
