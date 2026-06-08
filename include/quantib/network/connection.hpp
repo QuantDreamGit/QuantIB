@@ -14,12 +14,16 @@
 class BlockingHub {
 public:
 	using RequestFunc = std::function<void()>;
-	explicit BlockingHub(std::shared_ptr<ObjectHub> obj) : obj_(std::move(obj)) {}
+
+	explicit BlockingHub(std::shared_ptr<ObjectHub> obj, const std::shared_ptr<Logger> &logger) : obj_(std::move(obj)),
+	                                                                                              logger_(logger) {
+		LOG_DEBUG(CONN_HUB, "Initialized correctly.");
+	}
 
 	// Wait for the data
 	template<typename T>
 	std::optional<T> wait_for(std::type_index key,
-	                          const std::function<void()>& request) {
+	                          const std::function<void()> &request) {
 		// First lock the mutex to change isReady_ boolean
 		{
 			std::lock_guard<std::mutex> lk(mtx_);
@@ -106,6 +110,7 @@ public:
 	}
 
 private:
+	std::shared_ptr<Logger> logger_;
 	std::mutex mtx_;
 	std::condition_variable cv_;
 	std::shared_ptr<ObjectHub> obj_;

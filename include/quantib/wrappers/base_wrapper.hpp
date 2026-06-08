@@ -14,31 +14,37 @@
 // This class is used to override default wrapper functions
 class ResponseWrapper : public DefaultEWrapper {
 public:
-  explicit ResponseWrapper(std::shared_ptr<BlockingHub> hub, std::shared_ptr<ObjectHub> obj) : hub_(hub), obj_(obj) {}
-  ~ResponseWrapper() override = default;
-  // Deprecated
-  // void connectAck() override { hub_->send(typeid(connectTag), true); }
+	explicit ResponseWrapper(std::shared_ptr<BlockingHub> hub, std::shared_ptr<ObjectHub> obj, const
+	                         std::shared_ptr<Logger> &logger) : hub_(hub), obj_(obj), logger_(logger) {
+		LOG_DEBUG(WRAPPER, "Initialized correctly.");
+	}
 
-  void nextValidId(int orderId) override {
-    if (hub_->containsKey(typeid(connectTag))) {
-      hub_->send<connectTag>(orderId);
-    } else
-      hub_->send<nextValidIdTag>(orderId);
-  }
+	~ResponseWrapper() override = default;
 
-  void position(std::string account, Contract contract, Decimal pos,
-                double avgCost) {
-    std::cout << account << std::endl;
-  }
+	// Deprecated
+	// void connectAck() override { hub_->send(typeid(connectTag), true); }
 
-  void accountSummaryEnd(int reqId) override {
-    std::cout << "End of summary update!" << std::endl;
-  }
+	void nextValidId(int orderId) override {
+		if (hub_->containsKey(typeid(connectTag))) {
+			hub_->send<connectTag>(orderId);
+		} else
+			hub_->send<nextValidIdTag>(orderId);
+	}
 
-  void accountSummary(int reqId, const std::string &account, const std::string &tag, const std::string &value,
-                      const std::string &currency);
+	void position(std::string account, Contract contract, Decimal pos,
+	              double avgCost) {
+		std::cout << account << std::endl;
+	}
+
+	void accountSummaryEnd(int reqId) override {
+		std::cout << "End of summary update!" << std::endl;
+	}
+
+	void accountSummary(int reqId, const std::string &account, const std::string &tag, const std::string &value,
+	                    const std::string &currency);
 
 private:
-  std::shared_ptr<BlockingHub> hub_;
-  std::shared_ptr<ObjectHub> obj_;
+	std::shared_ptr<BlockingHub> hub_;
+	std::shared_ptr<ObjectHub> obj_;
+	std::shared_ptr<Logger> logger_;
 };
