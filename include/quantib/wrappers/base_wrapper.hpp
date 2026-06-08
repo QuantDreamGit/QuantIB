@@ -5,6 +5,7 @@
 
 #include "quantib/core/tags.hpp"
 #include "quantib/network/connection.hpp"
+#include "quantib/utils/logger.hpp"
 
 #include <iostream>
 #include <memory>
@@ -16,7 +17,7 @@ class ResponseWrapper : public DefaultEWrapper {
 public:
 	explicit ResponseWrapper(std::shared_ptr<BlockingHub> hub, std::shared_ptr<ObjectHub> obj, const
 	                         std::shared_ptr<Logger> &logger) : hub_(hub), obj_(obj), logger_(logger) {
-		LOG_DEBUG(WRAPPER, "Initialized correctly.");
+		LOG_DEBUG_TAG(WRAPPER, "Initialized correctly.");
 	}
 
 	~ResponseWrapper() override = default;
@@ -24,11 +25,11 @@ public:
 	// Deprecated
 	// void connectAck() override { hub_->send(typeid(connectTag), true); }
 
-	void nextValidId(int orderId) override {
-		if (hub_->containsKey(typeid(connectTag))) {
-			hub_->send<connectTag>(orderId);
+	void nextValidId(const int orderId) override {
+		if (hub_->containsKey<ConnectTag>()) {
+			hub_->send<ConnectTag>(orderId);
 		} else
-			hub_->send<nextValidIdTag>(orderId);
+			hub_->send<NextValidIdTag>(orderId);
 	}
 
 	void position(std::string account, Contract contract, Decimal pos,
@@ -41,7 +42,7 @@ public:
 	}
 
 	void accountSummary(int reqId, const std::string &account, const std::string &tag, const std::string &value,
-	                    const std::string &currency);
+	                    const std::string &currency) override;
 
 private:
 	std::shared_ptr<BlockingHub> hub_;
