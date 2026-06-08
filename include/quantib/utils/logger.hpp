@@ -10,23 +10,27 @@
 #include "spdlog/sinks/basic_file_sink.h"
 
 // Log level macros
+#define LOG_TRACE_LVL spdlog::level::trace
 #define LOG_DEBUG_LVL spdlog::level::debug
 #define LOG_INFO_LVL spdlog::level::info
 #define LOG_ERROR_LVL spdlog::level::err
 #define LOG_CRITICAL_LVL spdlog::level::critical
 // Variadic macros so that it's more handy to log
-#define LOG_INFO(...) logger_->info(__VA_ARGS__)
-#define LOG_DEBUG(...) logger_->debug(__VA_ARGS__)
-#define LOG_ERROR(...) logger_->error(__VA_ARGS__)
-#define LOG_CRITICAL(...) logger_->critical(__VA_ARGS__)
+#define LOG_INFO_TAG(tag, msg, ...) logger_->info("{}" msg, tag, ##__VA_ARGS__)
+#define LOG_DEBUG_TAG(tag, msg, ...) logger_->debug("{}" msg, tag, ##__VA_ARGS__)
+#define LOG_ERROR_TAG(tag, msg, ...) logger_->error("{}" msg, tag, ##__ VA_ARGS__)
+#define LOG_CRITICAL_TAG(tag, msg, ...) logger_->critical("{}" msg, tag, ##__VA_ARGS__)
+#define LOG_TRACE_TAG(tag, msg, ...) logger_->trace("{}" msg, tag, ##__VA_ARGS__)
 // Macros to locate the source of the message
+#define LOGGER "[Logger] "
 #define OBJ_HUB "[ObjectHub] "
 #define CONN_HUB "[ConnectionHub] "
 #define IB_STR "[IB] "
-#define STRATEGY "[STRATEGY] "
-#define WRAPPER "[WRAPPER] "
-#define CLIENT "[CLIENT] "
-#define REQ_ID "[REQ_ID] "
+#define STRATEGY "[Strategy] "
+#define WRAPPER "[Wrapper] "
+#define CLIENT "[Client] "
+#define REQ_ID "[RequestId] "
+#define PERFTIMER "[PerfTimer] "
 
 class Logger {
 	// I'd like to design it using 2 modes, silent and verbose with different degrees of freedom.
@@ -53,37 +57,42 @@ public:
 			file_sink->set_level(level);
 			file_sink->set_pattern("[%Y-%m-%d %H:%M:%S] [%l] %v");
 			// Finally, create the multi-sink logger
-			logger_ = spdlog::logger("main_logger", {console_sink, file_sink});
-			logger_.set_level(level);
+			logger_ = std::make_shared<spdlog::logger>("multi_sink", spdlog::sinks_init_list{console_sink, file_sink});
+			logger_->set_level(level);
 		} catch (const spdlog::spdlog_ex &ex) {
 			std::cerr << "Log init failed: " << ex.what() << std::endl;
 		}
 
-		logger_.debug("Logger initialized.");
+		LOG_DEBUG_TAG(LOGGER, "Initialized correctly with level: {}.", spdlog::level::to_string_view(level_));
 	}
 
 	template<typename... Args>
 	void info(fmt::format_string<Args...> msg, Args&&... args) {
-		logger_.info(msg, std::forward<Args>(args)...);
+		logger_->info(msg, std::forward<Args>(args)...);
 	}
 
 	template<typename... Args>
 	void debug(fmt::format_string<Args...> msg, Args&&... args) {
-		logger_.debug(msg, std::forward<Args>(args)...);
+		logger_->debug(msg, std::forward<Args>(args)...);
 	}
 
 	template<typename... Args>
 	void error(fmt::format_string<Args...> msg, Args&&... args) {
-		logger_.error(msg, std::forward<Args>(args)...);
+		logger_->error(msg, std::forward<Args>(args)...);
 	}
 
 	template<typename... Args>
 	void critical(fmt::format_string<Args...> msg, Args&&... args) {
-		logger_.critical(msg, std::forward<Args>(args)...);
+		logger_->critical(msg, std::forward<Args>(args)...);
+	}
+
+	template<typename... Args>
+	void trace(fmt::format_string<Args...> msg, Args&&... args) {
+		logger_->trace(msg, std::forward<Args>(args)...);
 	}
 
 private:
-	spdlog::logger logger_;
+	std::shared_ptr<spdlog::logger> logger_;
 	spdlog::level::level_enum level_;
 	bool verbose_ = true;
 	bool write_ = true;
