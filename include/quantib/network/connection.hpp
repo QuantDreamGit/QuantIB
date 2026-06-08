@@ -9,21 +9,26 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
+#include <chrono>
 
 // This is the first type of connection hub
 class BlockingHub {
 public:
 	using RequestFunc = std::function<void()>;
+	using Clock = std::chrono::steady_clock;
 
 	explicit BlockingHub(std::shared_ptr<ObjectHub> obj, const std::shared_ptr<Logger> &logger) : obj_(std::move(obj)),
 	                                                                                              logger_(logger) {
-		LOG_DEBUG(CONN_HUB, "Initialized correctly.");
+		LOG_DEBUG_TAG(OBJ_HUB, "Initialized correctly.");
 	}
 
 	// Wait for the data
-	template<typename T>
-	std::optional<T> wait_for(std::type_index key,
-	                          const std::function<void()> &request) {
+	template<typename Tag, typename T>
+	std::optional<T> wait_for(const std::function<void()> &request) {
+		// Start timer
+		const Clock::time_point start = Clock::now();
+		const std::type_index key = typeid(Tag);
+
 		// First lock the mutex to change isReady_ boolean
 		{
 			std::lock_guard<std::mutex> lk(mtx_);
@@ -42,14 +47,21 @@ public:
 		isReady_.erase(key);
 		pendingTag_.erase(key);
 
+		// End Timer
+		auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(Clock::now() - start).count();
+		LOG_TRACE_TAG(PERFTIMER, "Tag={} latency={} ms",
+		              Tag::name,
+		              ms);
+
 		return result;
 	}
 
 	// Subscribe to data feed
-	template<typename T>
-	void subscribe(const std::type_index key, const std::function<void()> &request) {
+	template<typename Tag, typename T>
+	void subscribe(const std::function<void()> &request) {
 		// First lock the mutex to change isReady_ boolean
 		{
+			const std::type_index key = typeid(Tag);
 			std::lock_guard<std::mutex> lk(mtx_);
 			// isReady[key] is set to false at the beginning so that when callback is
 			// executed we know whether it's the first time that data are received or
@@ -61,7 +73,7 @@ public:
 			// simple as possible.
 			// Later implementations will take this into consideration!
 			pendingTag_.insert(key);
-			obj_->create<T>(key);
+			obj_->create<Tag, T>();
 		}
 		// Then do RequestFunc
 		request();
@@ -89,24 +101,27 @@ public:
 			// obj_->insert<T>(key, std::move(value));
 			// isReady_[key] = true;
 			// } else {
-			obj_->update(key, std::forward<T>(value));
+			obj_->update<Tag>(std::forward<T>(value));
 			// }
 		}
 	}
 
-	void insertKey(std::type_index key) {
+	template<typename Tag>
+	void insertKey() {
 		std::lock_guard<std::mutex> lk(mtx_);
-		pendingTag_.insert(key);
+		pendingTag_.insert(typeid(Tag));
 	}
 
-	inline bool containsKey(std::type_index key) {
+	template<typename Tag>
+	inline bool containsKey() {
 		std::lock_guard<std::mutex> lk(mtx_);
-		return pendingTag_.contains(key);
+		return pendingTag_.contains(typeid(Tag));
 	}
 
-	inline void removeKey(std::type_index key) {
+	template<typename Tag>
+	inline void removeKey() {
 		std::lock_guard<std::mutex> lk(mtx_);
-		pendingTag_.erase(key);
+		pendingTag_.erase(typeid(Tag));
 	}
 
 private:
