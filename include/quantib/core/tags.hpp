@@ -1,9 +1,15 @@
 #pragma once
 
-struct RequestTag {};
-struct SubscriptionTag {};
+#define NAME static constexpr std::string_view name =
 
-struct connectTag : RequestTag {};
-struct nextValidIdTag : RequestTag {};
+struct RequestTag {
+	static constexpr std::string_view name = "";
+};
+struct SubscriptionTag {
+	static constexpr std::string_view name = "";
+};
 
-struct accountSummaryTag : SubscriptionTag {};
+struct ConnectTag : RequestTag { NAME "ConnectTag"; };
+struct NextValidIdTag : RequestTag { NAME "RequestTag"; };
+
+struct AccountSummaryTag : SubscriptionTag { NAME "accountSummaryTag"; };
