@@ -9,6 +9,7 @@ struct SubscriptionTag {
 	static constexpr std::string_view name = "";
 };
 
+struct AccountIdTag : RequestTag { NAME "AccountIdTag"; };
 struct ConnectTag : RequestTag { NAME "ConnectTag"; };
 struct NextValidIdTag : RequestTag { NAME "RequestTag"; };
 
