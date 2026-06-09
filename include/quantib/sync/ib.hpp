@@ -62,13 +62,18 @@ public:
 		return std::nullopt;
 	}
 
-
 	/* Account Summary Subscription */
 	void accountSummarySub(
-		const std::string &tags = ACCOUNT_SUMMARY_ESSENTIAL_TAGS,
+		const std::string &tags = AccountSummaryTags::all(),
 		const std::string &groups = "All");
-
 	void accountSummaryCancel() const;
+
+	/* Account Ids */
+	std::optional<AccountSummary> getAccountIds() const;
+
+	/* Account Update Subscription */
+	void accountUpdateSub() const;
+	void accountUpdateCancel() const;
 
 protected:
 	std::shared_ptr<Logger> logger_;
