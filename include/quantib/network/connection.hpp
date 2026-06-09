@@ -48,20 +48,29 @@ public:
 		pendingTag_.erase(key);
 
 		// End Timer
-		auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(Clock::now() - start).count();
-		LOG_TRACE_TAG(PERFTIMER, "Tag={} latency={} ms",
+		auto us = std::chrono::duration_cast<std::chrono::microseconds>(Clock::now() - start).count();
+		if (us < 1000)
+			LOG_TRACE_TAG(PERFTIMER, "Tag={} latency={} us",
 		              Tag::name,
-		              ms);
+		              us);
+		else
+			LOG_TRACE_TAG(PERFTIMER, "Tag={} latency={} ms",
+		              Tag::name,
+		              us / 1000);
 
 		return result;
 	}
 
 	// Subscribe to data feed
+	template<typename T>
+	void subscribe(const std::function<void()> &request) {
+		subscribe<T, T>(request);
+	}
+
 	template<typename Tag, typename T>
 	void subscribe(const std::function<void()> &request) {
 		// First lock the mutex to change isReady_ boolean
 		{
-			const std::type_index key = typeid(Tag);
 			std::lock_guard<std::mutex> lk(mtx_);
 			// isReady[key] is set to false at the beginning so that when callback is
 			// executed we know whether it's the first time that data are received or
@@ -72,8 +81,25 @@ public:
 			// Right now this idea is no further implemented since I want to start as
 			// simple as possible.
 			// Later implementations will take this into consideration!
-			pendingTag_.insert(key);
+			pendingTag_.insert(typeid(Tag));
 			obj_->create<Tag, T>();
+		}
+		// Then do RequestFunc
+		request();
+	}
+
+	template<typename T, typename... Args>
+	void subscribe(const std::function<void()> &request, Args &&... args) {
+		subscribe<T, T>(request, std::forward<Args>(args)...);
+	}
+
+	template<typename Tag, typename T, typename... Args>
+	void subscribe(const std::function<void()> &request, Args &&... args) {
+		// First lock the mutex to change isReady_ boolean
+		{
+			std::lock_guard<std::mutex> lk(mtx_);
+			pendingTag_.insert(typeid(Tag));
+			obj_->create<Tag, T>(std::forward<Args>(args)...);
 		}
 		// Then do RequestFunc
 		request();
@@ -101,7 +127,7 @@ public:
 			// obj_->insert<T>(key, std::move(value));
 			// isReady_[key] = true;
 			// } else {
-			obj_->update<Tag>(std::forward<T>(value));
+			obj_->update<Tag, T>(std::forward<T>(value));
 			// }
 		}
 	}
