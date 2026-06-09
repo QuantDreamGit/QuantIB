@@ -19,6 +19,7 @@
 #define LOG_INFO_TAG(tag, msg, ...) logger_->info("{}" msg, tag, ##__VA_ARGS__)
 #define LOG_DEBUG_TAG(tag, msg, ...) logger_->debug("{}" msg, tag, ##__VA_ARGS__)
 #define LOG_ERROR_TAG(tag, msg, ...) logger_->error("{}" msg, tag, ##__ VA_ARGS__)
+#define LOG_WARN_TAG(tag, msg, ...) logger_->warn("{}" msg, tag, ##__VA_ARGS__)
 #define LOG_CRITICAL_TAG(tag, msg, ...) logger_->critical("{}" msg, tag, ##__VA_ARGS__)
 #define LOG_TRACE_TAG(tag, msg, ...) logger_->trace("{}" msg, tag, ##__VA_ARGS__)
 // Macros to locate the source of the message
@@ -89,6 +90,11 @@ public:
 	template<typename... Args>
 	void trace(fmt::format_string<Args...> msg, Args&&... args) {
 		logger_->trace(msg, std::forward<Args>(args)...);
+	}
+
+	template<typename... Args>
+	void warn(fmt::format_string<Args...> msg, Args&&... args) {
+		logger_->warn(msg, std::forward<Args>(args)...);
 	}
 
 private:
