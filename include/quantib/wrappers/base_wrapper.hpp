@@ -39,24 +39,21 @@ public:
 
 	/* Account ids */
 	void managedAccounts(const std::string &accountsList) override;
-
 	/* Account Summary Subscription */
 	void accountSummary(int reqId, const std::string &account, const std::string &tag, const std::string &value,
 	                    const std::string &currency) override;
-
 	void accountSummaryEnd(int reqId) override;
-
 	/* Account Update Subscription */
 	void updateAccountValue(const std::string &key, const std::string &val, const std::string &currency,
 	                        const std::string &accountName) override;
-
 	void updatePortfolio(const Contract &contract, Decimal position, double marketPrice, double marketValue,
 	                     double averageCost, double unrealizedPNL, double realizedPNL,
 	                     const std::string &accountName) override;
-
 	void updateAccountTime(const std::string &timeStamp) override;
-
 	void accountDownloadEnd(const std::string &accountName) override;
+
+	void contractDetails(int reqId, const ContractDetails &contractDetails) override;
+	void contractDetailsEnd(int reqId) override;
 
 private:
 	std::shared_ptr<BlockingHub> hub_;

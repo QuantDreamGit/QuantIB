@@ -2,9 +2,9 @@
 #include "EClientSocket.h"
 #include "EReader.h"
 #include "EReaderOSSignal.h"
+#include "Contract.h"
 
 #include "quantib/core/object_hub.hpp"
-// #include "quantib/core/req_id.hpp"
 #include "quantib/core/tags.hpp"
 #include "quantib/wrappers/base_wrapper.hpp"
 #include "quantib/core/account.hpp"
@@ -55,25 +55,30 @@ public:
 				}
 			});
 
-			nextId_ = hub_->wait_for<ConnectTag, int>([&]() {}).value_or(-1);
+			nextId_ = hub_->wait_for<ConnectTag, int>([&]() {
+			}).value_or(-1);
 			return nextId_;
 		}
 
 		return std::nullopt;
 	}
 
-	/* Account Summary Subscription */
+	/* Account */
 	void accountSummarySub(
 		const std::string &tags = AccountSummaryTags::all(),
 		const std::string &groups = "All");
+
 	void accountSummaryCancel() const;
 
-	/* Account Ids */
-	std::optional<AccountSummary> getAccountIds() const;
+	[[nodiscard]] std::optional<AccountSummary> getAccountIds() const;
 
-	/* Account Update Subscription */
 	void accountUpdateSub() const;
+
 	void accountUpdateCancel() const;
+
+	/* Contracts */
+	std::optional<std::vector<ContractDetails>> getContractDetails(int reqId, const Contract &contract) const;
+	std::optional<std::vector<Contract>> getContracts(int reqId, const Contract &contract) const;
 
 protected:
 	std::shared_ptr<Logger> logger_;
