@@ -6,6 +6,7 @@
 #define TWS_API_CLIENT_COMMONDEFS_H
 
 #include <cfloat>
+#include <string>
 
 #define UNSET_INTEGER INT_MAX
 #define UNSET_DOUBLE DBL_MAX
