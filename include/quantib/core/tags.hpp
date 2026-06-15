@@ -14,3 +14,5 @@ struct NextValidIdTag : RequestTag { NAME "RequestTag"; };
 struct AccountSummaryTag : SubscriptionTag { NAME "accountSummaryTag"; };
 
 struct ContractDetailsTag : RequestTag { NAME "ContractDetailsTag"; };
+struct OpenOrdersTag : RequestTag { NAME "OpenOrdersTag"; };
+struct ExecutionDetailsTag : RequestTag { NAME "ExecutionDetailsTag"; };

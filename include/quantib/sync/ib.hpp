@@ -9,6 +9,7 @@
 #include "quantib/wrappers/base_wrapper.hpp"
 #include "quantib/core/account.hpp"
 #include "quantib/utils/logger.hpp"
+#include "quantib/order/hub.h"
 
 #include <memory>
 #include <optional>
@@ -22,9 +23,14 @@ public:
 		logger_ = std::make_shared<Logger>(lvl);
 		obj_ = std::make_shared<ObjectHub>(logger_);
 		hub_ = std::make_shared<BlockingHub>(obj_, logger_);
-		wrapper_ = std::make_unique<ResponseWrapper>(hub_, obj_, logger_);
+		orders_ = std::make_shared<OrderHub>(hub_, logger_);
+		wrapper_ = std::make_unique<ResponseWrapper>(hub_, obj_, orders_, logger_);
 		signal_ = std::make_unique<EReaderOSSignal>(2000);
 		client_ = std::make_unique<EClientSocket>(wrapper_.get(), signal_.get());
+
+		// Set client to order obj
+		orders_->setClient(client_.get());
+
 		// requestId_ = std::make_unique<RequestId>(logger_);
 	};
 
@@ -67,18 +73,23 @@ public:
 	void accountSummarySub(
 		const std::string &tags = AccountSummaryTags::all(),
 		const std::string &groups = "All");
-
 	void accountSummaryCancel() const;
-
 	[[nodiscard]] std::optional<AccountSummary> getAccountIds() const;
-
 	void accountUpdateSub() const;
-
 	void accountUpdateCancel() const;
 
 	/* Contracts */
-	std::optional<std::vector<ContractDetails>> getContractDetails(int reqId, const Contract &contract) const;
-	std::optional<std::vector<Contract>> getContracts(int reqId, const Contract &contract) const;
+	[[nodiscard]] std::optional<std::vector<ContractDetails>> getContractDetails(int reqId, const Contract &contract) const;
+	[[nodiscard]] std::optional<std::vector<Contract>> getContracts(int reqId, const Contract &contract) const;
+
+	/* Orders */
+	void placeOrder(const Contract &contract, const Order &order) {
+		client_->placeOrder(nextId_++, contract, order);
+		LOG_DEBUG_TAG(IB_STR, "Placed order with id {} for contract {}.", nextId_ - 1, contract.symbol);
+	}
+
+	[[nodiscard]] std::optional<std::vector<OpenOrders>> getOpenOrders() const;
+	[[nodiscard]] std::optional<std::vector<ClosedOrders>> getClosedOrders() const;
 
 protected:
 	std::shared_ptr<Logger> logger_;
@@ -91,6 +102,7 @@ protected:
 	// Mode is used to indicate whether commands should be sync or async
 	std::shared_ptr<BlockingHub> hub_;
 	std::shared_ptr<ObjectHub> obj_;
+	std::shared_ptr<OrderHub> orders_;
 	// std::unique_ptr<RequestId> requestId_;
 	int nextId_{};
 };

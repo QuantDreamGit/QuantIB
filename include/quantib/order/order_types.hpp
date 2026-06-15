@@ -9,8 +9,6 @@
 
 class OrderSamples {
 public:
-	static Order AtAuction(std::string action, Decimal quantity, double price);
-	static Order Discretionary(std::string action, Decimal quantity, double price, double discretionaryAmount);
 	static Order MarketOrder(std::string action, Decimal quantity);
 	static Order MarketIfTouched(std::string action, Decimal quantity, double price);
 	static Order MarketOnClose(std::string action, Decimal quantity);
@@ -18,21 +16,11 @@ public:
 	static Order MidpointMatch(std::string action, Decimal quantity);
 	static Order Midprice(const std::string &action, Decimal quantity, double priceCap);
 	static Order PeggedToMarket(std::string action, Decimal quantity, double marketOffset);
-	static Order PeggedToStock(std::string action, Decimal quantity, double delta, double stockReferencePrice, double startingPrice);
-	static Order RelativePeggedToPrimary(std::string action, Decimal quantity, double priceCap, double offsetAmount);
-	static Order SweepToFill(std::string action, Decimal quantity, double price);
-	static Order AuctionLimit(std::string action, Decimal quantity, double price, int auctionStrategy);
-	static Order AuctionPeggedToStock(std::string action, Decimal quantity, double startingPrice, double delta);
-	static Order AuctionRelative(std::string action, Decimal quantity, double offset);
-	static Order Block(std::string action, Decimal quantity, double price);
-	static Order BoxTop(std::string action, Decimal quantity);
 	static Order LimitOrder(std::string action, Decimal quantity, double limitPrice);
 	static Order LimitOrderWithCashQty(std::string action, double limitPrice, double cashQty);
 	static Order LimitIfTouched(std::string action, Decimal quantity, double limitPrice, double triggerPrice);
 	static Order LimitOnClose(std::string action, Decimal quantity, double limitPrice);
 	static Order LimitOnOpen(std::string action, Decimal quantity, double limitPrice);
-	static Order PassiveRelative(std::string action, Decimal quantity, double offset);
-	static Order PeggedToMidpoint(std::string action, Decimal quantity, double offset, double limitPrice);
 	static void BracketOrder(int parentOrderId, Order& parent, Order& takeProfit, Order& stopLoss, std::string action, Decimal quantity, double limitPrice, double takeProfitLimitPrice, double stopLossPrice);
 	static Order MarketToLimit(std::string action, Decimal quantity);
 	static Order MarketWithProtection(std::string action, Decimal quantity);
@@ -44,6 +32,9 @@ public:
 	static Order ComboLimitOrder(std::string action, Decimal quantity, double limitPrice, bool nonGuaranteed);
 	static Order ComboMarketOrder(std::string action, Decimal quantity, bool nonGuaranteed);
 	static Order LimitOrderForComboWithLegPrices(std::string action, Decimal quantity, std::vector<double> legprices, bool nonGuaranteed);
+	/*
+	static Order AtAuction(std::string action, Decimal quantity, double price);
+	static Order Discretionary(std::string action, Decimal quantity, double price, double discretionaryAmount);
 	static Order RelativeLimitOrder(std::string action, Decimal quantity, double limitPrice, bool nonGuaranteed);
 	static Order RelativeMarketCombo(std::string action, Decimal quantity, bool nonGuaranteed);
 	static void OneCancelsAll(std::string ocaGroup, Order& ocaOrder, int ocaType);
@@ -73,4 +64,15 @@ public:
 	static OrderCancel OrderCancelWithCmeTaggingFields(std::string extOperator, int manualOrderIndicator);
 	static Order LimitOnCloseOrderWithImbalanceOnly(std::string action, Decimal quantity, double limitPrice);
 	static Order LimitOrderWithStopLossAndProfitTaker(std::string action, Decimal quantity, double limitPrice, int slOrderId, int ptOrderId);
+	static Order PeggedToStock(std::string action, Decimal quantity, double delta, double stockReferencePrice, double startingPrice);
+	static Order RelativePeggedToPrimary(std::string action, Decimal quantity, double priceCap, double offsetAmount);
+	static Order SweepToFill(std::string action, Decimal quantity, double price);
+	static Order AuctionLimit(std::string action, Decimal quantity, double price, int auctionStrategy);
+	static Order AuctionPeggedToStock(std::string action, Decimal quantity, double startingPrice, double delta);
+	static Order AuctionRelative(std::string action, Decimal quantity, double offset);
+	static Order Block(std::string action, Decimal quantity, double price);
+	static Order BoxTop(std::string action, Decimal quantity);
+	static Order PassiveRelative(std::string action, Decimal quantity, double offset);
+	static Order PeggedToMidpoint(std::string action, Decimal quantity, double offset, double limitPrice);
+	*/
 };

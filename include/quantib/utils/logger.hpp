@@ -29,6 +29,7 @@
 #define IB_STR "[IB] "
 #define STRATEGY "[Strategy] "
 #define WRAPPER "[Wrapper] "
+#define ORDER_HUB "[OrderHub] "
 #define CLIENT "[Client] "
 #define REQ_ID "[RequestId] "
 #define PERFTIMER "[PerfTimer] "

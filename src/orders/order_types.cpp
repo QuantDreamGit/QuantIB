@@ -9,50 +9,10 @@
 #include "TimeCondition.h"
 #include "VolumeCondition.h"
 
-#include "quantib/core/orders.hpp"
+#include "../../include/quantib/order/order_types.hpp"
 
-	/// <summary>
-    /// Make sure to test using only your paper trading account when applicable. A good way of finding out if an order type/exchange combination
-    /// is possible is by trying to place such order manually using the TWS.
-    /// Before contacting our API support team please refer to the available documentation.
-    /// </summary>
 
-	/// <summary>
-    /// An auction order is entered into the electronic trading system during the pre-market opening period for execution at the
-    /// Calculated Opening Price (COP). If your order is not filled on the open, the order is re-submitted as a limit order with
-    /// the limit price set to the COP or the best bid/ask after the market opens.
-    /// Products: FUT, STK
-    /// </summary>
-Order OrderSamples::AtAuction(std::string action, Decimal quantity, double price){
-	//! [auction]
-	Order order;
-	order.action = action;
-	order.tif = "AUC";
-	order.orderType = "MTL";
-	order.totalQuantity = quantity;
-	order.lmtPrice = price;
-	//! [auction]
-	return order;
-}
-
-	/// <summary>
-    /// A Discretionary order is a limit order submitted with a hidden, specified 'discretionary' amount off the limit price which
-    /// may be used to increase the price range over which the limit order is eligible to execute. The market sees only the limit price.
-    /// Products: STK
-    /// </summary>
-Order OrderSamples::Discretionary(std::string action, Decimal quantity, double price, double discretionaryAmount){
-	//! [discretionary]
-	Order order;
-	order.action = action;
-	order.orderType = "LMT";
-	order.totalQuantity = quantity;
-	order.lmtPrice = price;
-	order.discretionaryAmt = discretionaryAmount;
-	//! [discretionary]
-	return order;
-}
-
-	/// <summary>
+/// <summary>
     /// A Market order is an order to buy or sell at the market bid or offer price. A market order may increase the likelihood of a fill
     /// and the speed of execution, but unlike the Limit order a Market order provides no price protection and may fill at a price far
     /// lower/higher than the current displayed bid/ask.
@@ -63,6 +23,7 @@ Order OrderSamples::MarketOrder(std::string action, Decimal quantity){
 	Order order;
 	order.action = action;
 	order.orderType = "MKT";
+	order.tif = "DAY";
 	order.totalQuantity = quantity;
 	//! [market]
 	return order;
@@ -170,180 +131,6 @@ Order OrderSamples::PeggedToMarket(std::string action, Decimal quantity, double 
 	return order;
 }
 
-	/// <summary>
-    /// A Pegged to Stock order continually adjusts the option order price by the product of a signed user-define delta and the change of
-    /// the option's underlying stock price. The delta is entered as an absolute and assumed to be positive for calls and negative for puts.
-    /// A buy or sell call order price is determined by adding the delta times a change in an underlying stock price to a specified starting
-    /// price for the call. To determine the change in price, the stock reference price is subtracted from the current NBBO midpoint.
-    /// The Stock Reference Price can be defined by the user, or defaults to the NBBO midpoint at the time of the order if no reference price
-    /// is entered. You may also enter a high/low stock price range which cancels the order when reached. The delta times the change in stock
-    /// price will be rounded to the nearest penny in favor of the order.
-    /// Products: OPT
-    /// </summary>
-Order OrderSamples::PeggedToStock(std::string action, Decimal quantity, double delta, double stockReferencePrice, double startingPrice){
-	//! [pegged_stock]
-	Order order;
-	order.action = action;
-	order.orderType = "PEG STK";
-	order.totalQuantity = quantity;
-	order.delta = delta;
-	order.stockRefPrice = stockReferencePrice;
-	order.startingPrice = startingPrice;
-	//! [pegged_stock]
-	return order;
-}
-
-	/// <summary>
-    /// Relative (a.k.a. Pegged-to-Primary) orders provide a means for traders to seek a more aggressive price than the National Best Bid
-    /// and Offer (NBBO). By acting as liquidity providers, and placing more aggressive bids and offers than the current best bids and offers,
-    /// traders increase their odds of filling their order. Quotes are automatically adjusted as the markets move, to remain aggressive.
-    /// For a buy order, your bid is pegged to the NBB by a more aggressive offset, and if the NBB moves up, your bid will also move up.
-    /// If the NBB moves down, there will be no adjustment because your bid will become even more aggressive and execute. For sales, your
-    /// offer is pegged to the NBO by a more aggressive offset, and if the NBO moves down, your offer will also move down. If the NBO moves up,
-    /// there will be no adjustment because your offer will become more aggressive and execute. In addition to the offset, you can define an
-    /// absolute cap, which works like a limit price, and will prevent your order from being executed above or below a specified level.
-    /// Stocks, Options and Futures - not available on paper trading
-    /// Products: CFD, STK, OPT, FUT
-    /// </summary>
-Order OrderSamples::RelativePeggedToPrimary(std::string action, Decimal quantity, double priceCap, double offsetAmount){
-	//! [relative_pegged_primary]
-	Order order;
-	order.action = action;
-	order.orderType = "REL";
-	order.totalQuantity = quantity;
-	order.lmtPrice = priceCap;
-	order.auxPrice = offsetAmount;
-	order.tif = "DAY";
-	//! [relative_pegged_primary]
-	return order;
-}
-
-	/// <summary>
-    /// Sweep-to-fill orders are useful when a trader values speed of execution over price. A sweep-to-fill order identifies the best price
-    /// and the exact quantity offered/available at that price, and transmits the corresponding portion of your order for immediate execution.
-    /// Simultaneously it identifies the next best price and quantity offered/available, and submits the matching quantity of your order for
-    /// immediate execution.
-    /// Products: CFD, STK, WAR
-    /// Supported Exchanges: SMART
-    /// </summary>
-Order OrderSamples::SweepToFill(std::string action, Decimal quantity, double price){
-	//! [sweep_to_fill]
-	Order order;
-	order.action = action;
-	order.orderType = "LMT";
-	order.totalQuantity = quantity;
-	order.lmtPrice = price;
-	order.sweepToFill = true;
-	//! [sweep_to_fill]
-	return order;
-}
-
-	/// <summary>
-    /// For option orders routed to the Boston Options Exchange (BOX) you may elect to participate in the BOX's price improvement auction in
-    /// pennies. All BOX-directed price improvement orders are immediately sent from Interactive Brokers to the BOX order book, and when the
-    /// terms allow, IB will evaluate it for inclusion in a price improvement auction based on price and volume priority. In the auction, your
-    /// order will have priority over broker-dealer price improvement orders at the same price.
-    /// An Auction Limit order at a specified price. Use of a limit order ensures that you will not receive an execution at a price less favorable
-    /// than the limit price. Enter limit orders in penny increments with your auction improvement amount computed as the difference between your
-    /// limit order price and the nearest listed increment.
-    /// Products: OPT
-    /// Supported Exchanges: BOX
-    /// </summary>
-Order OrderSamples::AuctionLimit(std::string action, Decimal quantity, double price, int auctionStrategy){
-	//! [auction_limit]
-	Order order;
-	order.action = action;
-	order.orderType = "LMT";
-	order.totalQuantity = quantity;
-	order.lmtPrice = price;
-	order.auctionStrategy = auctionStrategy;
-	//! [auction_limit]
-	return order;
-}
-
-	/// <summary>
-    /// For option orders routed to the Boston Options Exchange (BOX) you may elect to participate in the BOX's price improvement auction in pennies.
-    /// All BOX-directed price improvement orders are immediately sent from Interactive Brokers to the BOX order book, and when the terms allow,
-    /// IB will evaluate it for inclusion in a price improvement auction based on price and volume priority. In the auction, your order will have
-    /// priority over broker-dealer price improvement orders at the same price.
-    /// An Auction Pegged to Stock order adjusts the order price by the product of a signed delta (which is entered as an absolute and assumed to be
-    /// positive for calls, negative for puts) and the change of the option's underlying stock price. A buy or sell call order price is determined
-    /// by adding the delta times a change in an underlying stock price change to a specified starting price for the call. To determine the change
-    /// in price, a stock reference price (NBBO midpoint at the time of the order is assumed if no reference price is entered) is subtracted from
-    /// the current NBBO midpoint. A stock range may also be entered that cancels an order when reached. The delta times the change in stock price
-    /// will be rounded to the nearest penny in favor of the order and will be used as your auction improvement amount.
-    /// Products: OPT
-    /// Supported Exchanges: BOX
-    /// </summary>
-Order OrderSamples::AuctionPeggedToStock(std::string action, Decimal quantity, double startingPrice, double delta){
-	//! [auction_pegged_stock]
-	Order order;
-	order.action = action;
-	order.orderType = "PEG STK";
-	order.totalQuantity = quantity;
-	order.delta = delta;
-	order.startingPrice = startingPrice;
-	//! [auction_pegged_stock]
-	return order;
-}
-
-	/// <summary>
-    /// For option orders routed to the Boston Options Exchange (BOX) you may elect to participate in the BOX's price improvement auction in pennies.
-    /// All BOX-directed price improvement orders are immediately sent from Interactive Brokers to the BOX order book, and when the terms allow,
-    /// IB will evaluate it for inclusion in a price improvement auction based on price and volume priority. In the auction, your order will have
-    /// priority over broker-dealer price improvement orders at the same price.
-    /// An Auction Relative order that adjusts the order price by the product of a signed delta (which is entered as an absolute and assumed to be
-    /// positive for calls, negative for puts) and the change of the option's underlying stock price. A buy or sell call order price is determined
-    /// by adding the delta times a change in an underlying stock price change to a specified starting price for the call. To determine the change
-    /// in price, a stock reference price (NBBO midpoint at the time of the order is assumed if no reference price is entered) is subtracted from
-    /// the current NBBO midpoint. A stock range may also be entered that cancels an order when reached. The delta times the change in stock price
-    /// will be rounded to the nearest penny in favor of the order and will be used as your auction improvement amount.
-    /// Products: OPT
-    /// Supported Exchanges: BOX
-    /// </summary>
-Order OrderSamples::AuctionRelative(std::string action, Decimal quantity, double offset){
-	//! [auction_relative]
-	Order order;
-	order.action = action;
-	order.orderType = "REL";
-	order.totalQuantity = quantity;
-	order.auxPrice = offset;
-	//! [auction_relative]
-	return order;
-}
-
-	/// <summary>
-    /// The Block attribute is used for large volume option orders on ISE that consist of at least 50 contracts. To execute large-volume
-    /// orders over time without moving the market, use the Accumulate/Distribute algorithm.
-    /// Products: OPT
-    /// </summary>
-Order OrderSamples::Block(std::string action, Decimal quantity, double price){
-	// ! [block]
-	Order order;
-	order.action = action;
-	order.orderType = "LMT";
-	order.totalQuantity = quantity;
-	order.lmtPrice = price;
-	order.blockOrder = true;
-	// ! [block]
-	return order;
-}
-
-	/// <summary>
-    /// A Box Top order executes as a market order at the current best price. If the order is only partially filled, the remainder is submitted as
-    /// a limit order with the limit price equal to the price at which the filled portion of the order executed.
-    /// Products: OPT
-    /// Supported Exchanges: BOX
-    /// </summary>
-Order OrderSamples::BoxTop(std::string action, Decimal quantity){
-	// ! [boxtop]
-	Order order;
-	order.action = action;
-	order.orderType = "BOX TOP";
-	order.totalQuantity = quantity;
-	// ! [boxtop]
-	return order;
-}
 
 	/// <summary>
     /// A Limit order is an order to buy or sell at a specified price or better. The Limit order ensures that if the order fills,
@@ -427,48 +214,6 @@ Order OrderSamples::LimitOnOpen(std::string action, Decimal quantity, double lim
 	order.totalQuantity = quantity;
 	order.lmtPrice = limitPrice;
 	// ! [limitonopen]
-	return order;
-}
-
-	/// <summary>
-    /// Passive Relative orders provide a means for traders to seek a less aggressive price than the National Best Bid and Offer (NBBO) while
-    /// keeping the order pegged to the best bid (for a buy) or ask (for a sell). The order price is automatically adjusted as the markets move
-    /// to keep the order less aggressive. For a buy order, your order price is pegged to the NBB by a less aggressive offset, and if the NBB
-    /// moves up, your bid will also move up. If the NBB moves down, there will be no adjustment because your bid will become aggressive and execute.
-    /// For a sell order, your price is pegged to the NBO by a less aggressive offset, and if the NBO moves down, your offer will also move down.
-    /// If the NBO moves up, there will be no adjustment because your offer will become aggressive and execute. In addition to the offset, you can
-    /// define an absolute cap, which works like a limit price, and will prevent your order from being executed above or below a specified level.
-    /// The Passive Relative order is similar to the Relative/Pegged-to-Primary order, except that the Passive relative subtracts the offset from
-    /// the bid and the Relative adds the offset to the bid.
-    /// Products: STK, WAR
-    /// </summary>
-Order OrderSamples::PassiveRelative(std::string action, Decimal quantity, double offset){
-	// ! [passive_relative]
-	Order order;
-	order.action = action;
-	order.orderType = "PASSV REL";
-	order.totalQuantity = quantity;
-	order.auxPrice = offset;
-	// ! [passive_relative]
-	return order;
-}
-
-	/// <summary>
-    /// A pegged-to-midpoint order provides a means for traders to seek a price at the midpoint of the National Best Bid and Offer (NBBO).
-    /// The price automatically adjusts to peg the midpoint as the markets move, to remain aggressive. For a buy order, your bid is pegged to
-    /// the NBBO midpoint and the order price adjusts automatically to continue to peg the midpoint if the market moves. The price only adjusts
-    /// to be more aggressive. If the market moves in the opposite direction, the order will execute.
-    /// Products: STK
-    /// </summary>
-Order OrderSamples::PeggedToMidpoint(std::string action, Decimal quantity, double offset, double limitPrice){
-	// ! [pegged_midpoint]
-	Order order;
-	order.action = action;
-	order.orderType = "PEG MID";
-	order.totalQuantity = quantity;
-	order.auxPrice = offset;
-	order.lmtPrice = limitPrice;
-	// ! [pegged_midpoint]
 	return order;
 }
 
@@ -712,6 +457,224 @@ Order OrderSamples::LimitOrderForComboWithLegPrices(std::string action, Decimal 
 		order.smartComboRoutingParams->push_back(tag1);
 	}
 	// ! [limitordercombolegprices]
+	return order;
+}
+/* UNNECESSARY NOW
+
+	/// <summary>
+    /// A Pegged to Stock order continually adjusts the option order price by the product of a signed user-define delta and the change of
+    /// the option's underlying stock price. The delta is entered as an absolute and assumed to be positive for calls and negative for puts.
+    /// A buy or sell call order price is determined by adding the delta times a change in an underlying stock price to a specified starting
+    /// price for the call. To determine the change in price, the stock reference price is subtracted from the current NBBO midpoint.
+    /// The Stock Reference Price can be defined by the user, or defaults to the NBBO midpoint at the time of the order if no reference price
+    /// is entered. You may also enter a high/low stock price range which cancels the order when reached. The delta times the change in stock
+    /// price will be rounded to the nearest penny in favor of the order.
+    /// Products: OPT
+    /// </summary>
+Order OrderSamples::PeggedToStock(std::string action, Decimal quantity, double delta, double stockReferencePrice, double startingPrice){
+	//! [pegged_stock]
+	Order order;
+	order.action = action;
+	order.orderType = "PEG STK";
+	order.totalQuantity = quantity;
+	order.delta = delta;
+	order.stockRefPrice = stockReferencePrice;
+	order.startingPrice = startingPrice;
+	//! [pegged_stock]
+	return order;
+}
+
+	/// <summary>
+    /// Relative (a.k.a. Pegged-to-Primary) orders provide a means for traders to seek a more aggressive price than the National Best Bid
+    /// and Offer (NBBO). By acting as liquidity providers, and placing more aggressive bids and offers than the current best bids and offers,
+    /// traders increase their odds of filling their order. Quotes are automatically adjusted as the markets move, to remain aggressive.
+    /// For a buy order, your bid is pegged to the NBB by a more aggressive offset, and if the NBB moves up, your bid will also move up.
+    /// If the NBB moves down, there will be no adjustment because your bid will become even more aggressive and execute. For sales, your
+    /// offer is pegged to the NBO by a more aggressive offset, and if the NBO moves down, your offer will also move down. If the NBO moves up,
+    /// there will be no adjustment because your offer will become more aggressive and execute. In addition to the offset, you can define an
+    /// absolute cap, which works like a limit price, and will prevent your order from being executed above or below a specified level.
+    /// Stocks, Options and Futures - not available on paper trading
+    /// Products: CFD, STK, OPT, FUT
+    /// </summary>
+Order OrderSamples::RelativePeggedToPrimary(std::string action, Decimal quantity, double priceCap, double offsetAmount){
+	//! [relative_pegged_primary]
+	Order order;
+	order.action = action;
+	order.orderType = "REL";
+	order.totalQuantity = quantity;
+	order.lmtPrice = priceCap;
+	order.auxPrice = offsetAmount;
+	order.tif = "DAY";
+	//! [relative_pegged_primary]
+	return order;
+}
+
+	/// <summary>
+    /// Sweep-to-fill orders are useful when a trader values speed of execution over price. A sweep-to-fill order identifies the best price
+    /// and the exact quantity offered/available at that price, and transmits the corresponding portion of your order for immediate execution.
+    /// Simultaneously it identifies the next best price and quantity offered/available, and submits the matching quantity of your order for
+    /// immediate execution.
+    /// Products: CFD, STK, WAR
+    /// Supported Exchanges: SMART
+    /// </summary>
+Order OrderSamples::SweepToFill(std::string action, Decimal quantity, double price){
+	//! [sweep_to_fill]
+	Order order;
+	order.action = action;
+	order.orderType = "LMT";
+	order.totalQuantity = quantity;
+	order.lmtPrice = price;
+	order.sweepToFill = true;
+	//! [sweep_to_fill]
+	return order;
+}
+
+	/// <summary>
+    /// For option orders routed to the Boston Options Exchange (BOX) you may elect to participate in the BOX's price improvement auction in
+    /// pennies. All BOX-directed price improvement orders are immediately sent from Interactive Brokers to the BOX order book, and when the
+    /// terms allow, IB will evaluate it for inclusion in a price improvement auction based on price and volume priority. In the auction, your
+    /// order will have priority over broker-dealer price improvement orders at the same price.
+    /// An Auction Limit order at a specified price. Use of a limit order ensures that you will not receive an execution at a price less favorable
+    /// than the limit price. Enter limit orders in penny increments with your auction improvement amount computed as the difference between your
+    /// limit order price and the nearest listed increment.
+    /// Products: OPT
+    /// Supported Exchanges: BOX
+    /// </summary>
+Order OrderSamples::AuctionLimit(std::string action, Decimal quantity, double price, int auctionStrategy){
+	//! [auction_limit]
+	Order order;
+	order.action = action;
+	order.orderType = "LMT";
+	order.totalQuantity = quantity;
+	order.lmtPrice = price;
+	order.auctionStrategy = auctionStrategy;
+	//! [auction_limit]
+	return order;
+}
+
+	/// <summary>
+    /// For option orders routed to the Boston Options Exchange (BOX) you may elect to participate in the BOX's price improvement auction in pennies.
+    /// All BOX-directed price improvement orders are immediately sent from Interactive Brokers to the BOX order book, and when the terms allow,
+    /// IB will evaluate it for inclusion in a price improvement auction based on price and volume priority. In the auction, your order will have
+    /// priority over broker-dealer price improvement orders at the same price.
+    /// An Auction Pegged to Stock order adjusts the order price by the product of a signed delta (which is entered as an absolute and assumed to be
+    /// positive for calls, negative for puts) and the change of the option's underlying stock price. A buy or sell call order price is determined
+    /// by adding the delta times a change in an underlying stock price change to a specified starting price for the call. To determine the change
+    /// in price, a stock reference price (NBBO midpoint at the time of the order is assumed if no reference price is entered) is subtracted from
+    /// the current NBBO midpoint. A stock range may also be entered that cancels an order when reached. The delta times the change in stock price
+    /// will be rounded to the nearest penny in favor of the order and will be used as your auction improvement amount.
+    /// Products: OPT
+    /// Supported Exchanges: BOX
+    /// </summary>
+Order OrderSamples::AuctionPeggedToStock(std::string action, Decimal quantity, double startingPrice, double delta){
+	//! [auction_pegged_stock]
+	Order order;
+	order.action = action;
+	order.orderType = "PEG STK";
+	order.totalQuantity = quantity;
+	order.delta = delta;
+	order.startingPrice = startingPrice;
+	//! [auction_pegged_stock]
+	return order;
+}
+
+	/// <summary>
+    /// For option orders routed to the Boston Options Exchange (BOX) you may elect to participate in the BOX's price improvement auction in pennies.
+    /// All BOX-directed price improvement orders are immediately sent from Interactive Brokers to the BOX order book, and when the terms allow,
+    /// IB will evaluate it for inclusion in a price improvement auction based on price and volume priority. In the auction, your order will have
+    /// priority over broker-dealer price improvement orders at the same price.
+    /// An Auction Relative order that adjusts the order price by the product of a signed delta (which is entered as an absolute and assumed to be
+    /// positive for calls, negative for puts) and the change of the option's underlying stock price. A buy or sell call order price is determined
+    /// by adding the delta times a change in an underlying stock price change to a specified starting price for the call. To determine the change
+    /// in price, a stock reference price (NBBO midpoint at the time of the order is assumed if no reference price is entered) is subtracted from
+    /// the current NBBO midpoint. A stock range may also be entered that cancels an order when reached. The delta times the change in stock price
+    /// will be rounded to the nearest penny in favor of the order and will be used as your auction improvement amount.
+    /// Products: OPT
+    /// Supported Exchanges: BOX
+    /// </summary>
+Order OrderSamples::AuctionRelative(std::string action, Decimal quantity, double offset){
+	//! [auction_relative]
+	Order order;
+	order.action = action;
+	order.orderType = "REL";
+	order.totalQuantity = quantity;
+	order.auxPrice = offset;
+	//! [auction_relative]
+	return order;
+}
+
+	/// <summary>
+    /// The Block attribute is used for large volume option orders on ISE that consist of at least 50 contracts. To execute large-volume
+    /// orders over time without moving the market, use the Accumulate/Distribute algorithm.
+    /// Products: OPT
+    /// </summary>
+Order OrderSamples::Block(std::string action, Decimal quantity, double price){
+	// ! [block]
+	Order order;
+	order.action = action;
+	order.orderType = "LMT";
+	order.totalQuantity = quantity;
+	order.lmtPrice = price;
+	order.blockOrder = true;
+	// ! [block]
+	return order;
+}
+
+	/// <summary>
+    /// A Box Top order executes as a market order at the current best price. If the order is only partially filled, the remainder is submitted as
+    /// a limit order with the limit price equal to the price at which the filled portion of the order executed.
+    /// Products: OPT
+    /// Supported Exchanges: BOX
+    /// </summary>
+Order OrderSamples::BoxTop(std::string action, Decimal quantity){
+	// ! [boxtop]
+	Order order;
+	order.action = action;
+	order.orderType = "BOX TOP";
+	order.totalQuantity = quantity;
+	// ! [boxtop]
+	return order;
+}
+
+	/// <summary>
+    /// Passive Relative orders provide a means for traders to seek a less aggressive price than the National Best Bid and Offer (NBBO) while
+    /// keeping the order pegged to the best bid (for a buy) or ask (for a sell). The order price is automatically adjusted as the markets move
+    /// to keep the order less aggressive. For a buy order, your order price is pegged to the NBB by a less aggressive offset, and if the NBB
+    /// moves up, your bid will also move up. If the NBB moves down, there will be no adjustment because your bid will become aggressive and execute.
+    /// For a sell order, your price is pegged to the NBO by a less aggressive offset, and if the NBO moves down, your offer will also move down.
+    /// If the NBO moves up, there will be no adjustment because your offer will become aggressive and execute. In addition to the offset, you can
+    /// define an absolute cap, which works like a limit price, and will prevent your order from being executed above or below a specified level.
+    /// The Passive Relative order is similar to the Relative/Pegged-to-Primary order, except that the Passive relative subtracts the offset from
+    /// the bid and the Relative adds the offset to the bid.
+    /// Products: STK, WAR
+    /// </summary>
+Order OrderSamples::PassiveRelative(std::string action, Decimal quantity, double offset){
+	// ! [passive_relative]
+	Order order;
+	order.action = action;
+	order.orderType = "PASSV REL";
+	order.totalQuantity = quantity;
+	order.auxPrice = offset;
+	// ! [passive_relative]
+	return order;
+}
+
+	/// <summary>
+    /// A pegged-to-midpoint order provides a means for traders to seek a price at the midpoint of the National Best Bid and Offer (NBBO).
+    /// The price automatically adjusts to peg the midpoint as the markets move, to remain aggressive. For a buy order, your bid is pegged to
+    /// the NBBO midpoint and the order price adjusts automatically to continue to peg the midpoint if the market moves. The price only adjusts
+    /// to be more aggressive. If the market moves in the opposite direction, the order will execute.
+    /// Products: STK
+    /// </summary>
+Order OrderSamples::PeggedToMidpoint(std::string action, Decimal quantity, double offset, double limitPrice){
+	// ! [pegged_midpoint]
+	Order order;
+	order.action = action;
+	order.orderType = "PEG MID";
+	order.totalQuantity = quantity;
+	order.auxPrice = offset;
+	order.lmtPrice = limitPrice;
+	// ! [pegged_midpoint]
 	return order;
 }
 
@@ -1145,3 +1108,5 @@ Order OrderSamples::LimitOrderWithStopLossAndProfitTaker(std::string action, Dec
 	// ! [limit_order_with_stop_loss_and_profit_taker]
 	return order;
 }
+
+*/

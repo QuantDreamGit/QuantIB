@@ -9,14 +9,19 @@
 
 #include <iostream>
 #include <memory>
+#include <utility>
 
+#include "Execution.h"
 #include "quantib/core/account.hpp"
+#include "quantib/order/hub.h"
 
 // This class is used to override default wrapper functions
 class ResponseWrapper : public DefaultEWrapper {
 public:
-	explicit ResponseWrapper(std::shared_ptr<BlockingHub> hub, std::shared_ptr<ObjectHub> obj, const
-	                         std::shared_ptr<Logger> &logger) : hub_(hub), obj_(obj), logger_(logger) {
+	explicit ResponseWrapper(std::shared_ptr<BlockingHub> hub, std::shared_ptr<ObjectHub> obj,
+	                         std::shared_ptr<OrderHub> orders,
+	                         const std::shared_ptr<Logger> &logger) : hub_(std::move(hub)), obj_(std::move(obj)),
+	                                                                  orders_(std::move(orders)), logger_(logger) {
 		LOG_DEBUG_TAG(WRAPPER, "Initialized correctly.");
 	}
 
@@ -39,24 +44,52 @@ public:
 
 	/* Account ids */
 	void managedAccounts(const std::string &accountsList) override;
+
 	/* Account Summary Subscription */
 	void accountSummary(int reqId, const std::string &account, const std::string &tag, const std::string &value,
 	                    const std::string &currency) override;
+
 	void accountSummaryEnd(int reqId) override;
+
 	/* Account Update Subscription */
 	void updateAccountValue(const std::string &key, const std::string &val, const std::string &currency,
 	                        const std::string &accountName) override;
+
 	void updatePortfolio(const Contract &contract, Decimal position, double marketPrice, double marketValue,
 	                     double averageCost, double unrealizedPNL, double realizedPNL,
 	                     const std::string &accountName) override;
+
 	void updateAccountTime(const std::string &timeStamp) override;
+
 	void accountDownloadEnd(const std::string &accountName) override;
 
 	void contractDetails(int reqId, const ContractDetails &contractDetails) override;
+
 	void contractDetailsEnd(int reqId) override;
+
+	void openOrder(int orderId, const Contract &contract, const Order &order, const OrderState &order_state) override;
+
+	void orderStatus(int orderId, const std::string &status, Decimal filled, Decimal remaining, double avgFillPrice,
+	                 long long permId, int parentId, double lastFillPrice, int clientId, const std::string &whyHeld,
+	                 double mktCapPrice) override;
+
+	void openOrderEnd() override;
+
+	void execDetails(int reqId, const Contract &contract, const Execution &execution) override;
+
+	void execDetailsEnd(int reqId) override;
+
+
+	void error(int id, time_t errorTime, int errorCode, const std::string &errorString, const std::string
+	           &advancedOrderRejectJson) override {
+		LOG_WARN_TAG(WRAPPER, "Received error with id {}: code={}, message={}, advancedOrderRejectJson={}", id,
+		             errorCode, errorString,
+		             advancedOrderRejectJson);
+	}
 
 private:
 	std::shared_ptr<BlockingHub> hub_;
 	std::shared_ptr<ObjectHub> obj_;
+	std::shared_ptr<OrderHub> orders_;
 	std::shared_ptr<Logger> logger_;
 };
