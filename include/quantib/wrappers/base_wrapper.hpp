@@ -79,6 +79,11 @@ public:
 
 	void execDetailsEnd(int reqId) override;
 
+	void position(const std::string &account, const Contract &contract, Decimal position, double avgCost) override;
+
+	void positionEnd() override;
+
+
 
 	void error(int id, time_t errorTime, int errorCode, const std::string &errorString, const std::string
 	           &advancedOrderRejectJson) override {

@@ -143,6 +143,30 @@ public:
 		return get<T, T>();
 	}
 
+	template<typename Tag, typename T>
+	void append(T value) {
+		const std::type_index key = typeid(Tag);
+		const auto it = objects_.find(key);
+		// If you can't find it create it using default constructor
+		if (it == objects_.end()) {
+			LOG_CRITICAL_TAG(OBJ_HUB, "Cannot append ({}): stored object does not exist.", typeid(Tag).name());
+		}
+		// Otherwise, cast it to required type
+		auto *holder = dynamic_cast<Holder<std::vector<T>> *>(it->second.get());
+
+		if (!holder) {
+			LOG_CRITICAL_TAG(OBJ_HUB, "Cannot get ({}): stored object has different type. ", typeid(Tag).name());
+			throw std::runtime_error("Cannot get: stored object has different type");
+		}
+		// Check if std::vector<T> is stored
+		holder->ptr->emplace_back(std::move(value));
+	}
+
+	template<typename T>
+	void append(T value) {
+		return append<T, T>(std::move(value));
+	}
+
 	template<typename T>
 	bool contains() const {
 		return objects_.contains(typeid(T));

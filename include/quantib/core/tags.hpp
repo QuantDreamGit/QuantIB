@@ -16,3 +16,4 @@ struct AccountSummaryTag : SubscriptionTag { NAME "accountSummaryTag"; };
 struct ContractDetailsTag : RequestTag { NAME "ContractDetailsTag"; };
 struct OpenOrdersTag : RequestTag { NAME "OpenOrdersTag"; };
 struct ExecutionDetailsTag : RequestTag { NAME "ExecutionDetailsTag"; };
+struct PositionTag : SubscriptionTag { NAME "PositionTag"; };

@@ -15,6 +15,8 @@
 #include <optional>
 #include <thread>
 
+#include "quantib/core/position.h"
+
 class IB {
 public:
 	using log_level = spdlog::level::level_enum;
@@ -30,8 +32,10 @@ public:
 
 		// Set client to order obj
 		orders_->setClient(client_.get());
-
-		// requestId_ = std::make_unique<RequestId>(logger_);
+		// Create a vector of the current positions, it's automatically updated
+		hub_->subscribe<PositionTag, std::vector<Position>>([&]() {
+			client_->reqPositions();
+		});
 	};
 
 	~IB() {
@@ -90,6 +94,13 @@ public:
 
 	[[nodiscard]] std::optional<std::vector<OpenOrders>> getOpenOrders() const;
 	[[nodiscard]] std::optional<std::vector<ClosedOrders>> getClosedOrders() const;
+	void PositionsSub() const {
+		client_->reqPositions();
+	}
+
+	std::optional<std::vector<Position>> getPositions() const {
+		return obj_->get<PositionTag, std::vector<Position>>();
+	}
 
 protected:
 	std::shared_ptr<Logger> logger_;
