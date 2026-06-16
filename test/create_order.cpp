@@ -27,33 +27,33 @@ int main() {
 		ib->placeOrder(final_contract, order);
 	}
 	std::cin.get();
-	std::optional<std::vector<OpenOrders>> open_orders = ib->getOpenOrders();
+	std::optional<std::unordered_map<int, OpenOrders>*> open_orders = ib->getOpenOrders();
 	if (open_orders.has_value()) {
-		std::cout << "Open orders: " << open_orders.value().size() << std::endl;
-		for (const auto &order: open_orders.value()) {
-			std::cout << "Order id: " << order.orderDetails.order_id << std::endl;
-			std::cout << "Contract symbol: " << order.orderDetails.contract.symbol << std::endl;
-			std::cout << "Order action: " << order.orderDetails.order.action << std::endl;
-			std::cout << "Order type: " << order.orderDetails.order.orderType << std::endl;
-			std::cout << "Order quantity: " << DecimalFunctions::decimalToString(order.orderDetails.order.totalQuantity) << std::endl;
-			std::cout << "Order limit price: " << order.orderDetails.order.lmtPrice << std::endl;
-			std::cout << "Order status: " << order.orderStatus.status << std::endl;
-			std::cout << "Order filled quantity: " << DecimalFunctions::decimalToString(order.orderStatus.filled) << std::endl;
-			std::cout << "Order remaining quantity: " << DecimalFunctions::decimalToString(order.orderStatus.remaining) << std::endl;
-			std::cout << "Order average fill price: " << order.orderStatus.avgFillPrice << std::endl;
+		std::cout << "Open orders: " << open_orders.value()->size() << std::endl;
+		for (const auto &order: *open_orders.value()) {
+			std::cout << "Order id: " << order.second.orderDetails.order_id << std::endl;
+			std::cout << "Contract symbol: " << order.second.orderDetails.contract.symbol << std::endl;
+			std::cout << "Order action: " << order.second.orderDetails.order.action << std::endl;
+			std::cout << "Order type: " << order.second.orderDetails.order.orderType << std::endl;
+			std::cout << "Order quantity: " << DecimalFunctions::decimalToString(order.second.orderDetails.order.totalQuantity) << std::endl;
+			std::cout << "Order limit price: " << order.second.orderDetails.order.lmtPrice << std::endl;
+			std::cout << "Order status: " << order.second.orderStatus.status << std::endl;
+			std::cout << "Order filled quantity: " << DecimalFunctions::decimalToString(order.second.orderStatus.filled) << std::endl;
+			std::cout << "Order remaining quantity: " << DecimalFunctions::decimalToString(order.second.orderStatus.remaining) << std::endl;
+			std::cout << "Order average fill price: " << order.second.orderStatus.avgFillPrice << std::endl;
 		}
 	}
 
 	std::cin.get();
 
 	// Verify that the order has been filled and moved to closed orders
-	std::optional<std::vector<ClosedOrders>> closed_orders = ib->getClosedOrders();
+	std::optional<std::unordered_map<int, ClosedOrders>*> closed_orders = ib->getClosedOrders();
 
 	if (closed_orders.has_value()) {
-		std::cout << "Closed orders: " << closed_orders.value().size() << std::endl;
-		for (const auto &order: closed_orders.value()) {
-			std::cout << "Order id: " << order.orderDetails.order_id << std::endl;
-			std::cout << "Average price fill: " << order.orderStatus.avgFillPrice << std::endl;
+		std::cout << "Closed orders: " << closed_orders.value()->size() << std::endl;
+		for (const auto &order: *closed_orders.value()) {
+			std::cout << "Order id: " << order.second.orderDetails.order_id << std::endl;
+			std::cout << "Average price fill: " << order.second.orderStatus.avgFillPrice << std::endl;
 		}
 	}
 }

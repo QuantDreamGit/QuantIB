@@ -23,7 +23,7 @@ struct OrderStoreTag : PermanentTag {
 	static constexpr std::string_view name = "OrderStoreTag";
 };
 
-struct PositionStoreTag : PermanentTag {
+struct PositionStoreTag : PermanentTag, SubscriptionTag {
 	static constexpr std::string_view name = "PositionStoreTag";
 };
 
@@ -37,6 +37,18 @@ struct MarketDataStoreTag : PermanentTag {
 
 struct AccountStoreTag : PermanentTag {
 	static constexpr std::string_view name = "AccountStoreTag";
+};
+
+struct OpenOrderStoreTag : PermanentTag {
+	static constexpr std::string_view name = "OpenOrderStoreTag";
+};
+
+struct ClosedOrderStoreTag : PermanentTag {
+	static constexpr std::string_view name = "ClosedOrderStoreTag";
+};
+
+struct BulletinStoreTag : PermanentTag {
+	static constexpr std::string_view name = "BulletinStoreTag";
 };
 // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 // Request objects

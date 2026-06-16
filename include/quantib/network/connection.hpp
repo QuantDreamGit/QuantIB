@@ -18,7 +18,7 @@ public:
 	using RequestFunc = std::function<void()>;
 	using Clock = std::chrono::steady_clock;
 
-	explicit BlockingHub(ObjectHub &obj, Logger &logger) : obj_(obj), logger_(logger) {
+	explicit BlockingHub(ObjectHub &obj, Logger &logger) : logger_(logger), obj_(obj) {
 		LOG_DEBUG_TAG(OBJ_HUB, "Initialized correctly.");
 	}
 

@@ -33,6 +33,9 @@
 #define CLIENT "[Client] "
 #define REQ_ID "[RequestId] "
 #define PERFTIMER "[PerfTimer] "
+#define POS_MGR "[PositionManager] "
+#define ORD_MGR "[OrderManager] "
+#define BULLETIN "[Bulletin] "
 
 class Logger {
 	// I'd like to design it using 2 modes, silent and verbose with different degrees of freedom.

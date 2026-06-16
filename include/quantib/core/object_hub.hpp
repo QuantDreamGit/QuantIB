@@ -6,6 +6,7 @@
 #include <unordered_map>
 #include <utility>
 
+#include "tags.hpp"
 #include "quantib/utils/logger.hpp"
 
 struct IHolder {
@@ -48,7 +49,7 @@ public:
 	template<typename Tag, typename T, typename... Args>
 	T &create(Args &&... args) {
 		if (objects_.contains(typeid(Tag))) {
-			LOG_WARN_TAG(OBJ_HUB, "Cannot create: object already exists");
+			LOG_DEBUG_TAG(OBJ_HUB, "Cannot create: object already exists");
 			return *get_or_create<Tag, T>(std::forward<Args>(args)...);
 		}
 		auto holder = std::make_unique<Holder<T> >(std::forward<Args>(args)...);
@@ -86,7 +87,7 @@ public:
 
 		if (!obj) {
 			LOG_WARN_TAG(OBJ_HUB, "Cannot update object with tag {}: object does not exist or has wrong type.",
-				typeid(Tag).name());
+			             typeid(Tag).name());
 			insert<Tag, T>(std::move(value));
 			return;
 		}
@@ -114,6 +115,12 @@ public:
 			              typeid(Tag).name());
 			return &create<Tag, T>(std::forward<Args>(args)...);
 		}
+		if (it->second->type() != typeid(T)) {
+			LOG_WARN_TAG(OBJ_HUB, "Object with tag {} has wrong type. Expected {}, but found {}. Returning nullptr.",
+			             typeid(Tag).name(), typeid(T).name(), it->second->type().name());
+			return nullptr;
+		}
+
 		// We have to cast from IHolder<T> to Holder<T> class
 		auto *holder = static_cast<Holder<T> *>(it->second.get());
 		return holder->ptr.get();
@@ -126,6 +133,11 @@ public:
 		if (it == objects_.end()) {
 			LOG_WARN_TAG(OBJ_HUB, "Cannot get ({}): stored object does not exist, returning a nullptr.", typeid(Tag)
 			             .name());
+			return nullptr;
+		}
+		if (it->second->type() != typeid(T)) {
+			LOG_WARN_TAG(OBJ_HUB, "Object with tag {} has wrong type. Expected {}, but found {}. Returning nullptr.",
+			             typeid(Tag).name(), typeid(T).name(), it->second->type().name());
 			return nullptr;
 		}
 		// We have to cast from IHolder<T> to Holder<T> class
@@ -151,7 +163,7 @@ public:
 			return;
 		}
 		// We have to cast from IHolder<T> to Holder<T> class
-		auto* holder = static_cast<Holder<std::vector<T>>*>(it->second.get());
+		auto *holder = static_cast<Holder<std::vector<T> > *>(it->second.get());
 		// Check if std::vector<T> is stored
 		holder->ptr->emplace_back(std::move(value));
 	}
@@ -161,12 +173,67 @@ public:
 		return try_append<T, T>(std::move(value));
 	}
 
+	// Assign/Insert an element into a map obj
+	template<typename Tag, typename Key, typename Value>
+	void insert_or_assign(Key key, Value value) {
+		auto *map = get_or_create<Tag, std::unordered_map<Key, Value> >();
+		if (!map) {
+			LOG_WARN_TAG(OBJ_HUB, "Cannot insert_or_assign to tag {}.", typeid(Tag).name());
+			return;
+		}
+
+		map->insert_or_assign(std::move(key), std::move(value));
+	}
+
+	template<typename Tag, typename Key, typename Value>
+	Value *find_in_map(const Key &key) {
+		auto *map = try_get<Tag, std::unordered_map<Key, Value> >();
+		if (!map) {
+			LOG_WARN_TAG(OBJ_HUB, "Map with tag {} does not exist.", typeid(Tag).name());
+			return nullptr;
+		}
+
+		auto it = map->find(key);
+		if (it == map->end()) {
+			return nullptr;
+		}
+		return &it->second;
+	}
+
+	template<typename Tag, typename Key, typename Value>
+	Value *find_or_create_in_map(const Key &key) {
+		auto *map = try_get<Tag, std::unordered_map<Key, Value> >();
+
+		if (!map) {
+			LOG_WARN_TAG(OBJ_HUB, "Map with tag {} does not exist. It will be created.", typeid(Tag).name());
+			map = get_or_create<Tag, std::unordered_map<Key, Value> >();
+
+			if (!map) {
+				return nullptr;
+			}
+		}
+
+		auto [it, _] = map->try_emplace(key);
+		return &it->second;
+	}
+
+	template<typename Tag, typename Key, typename Value>
+	void delete_from_map(const Key &key) {
+		auto *map = try_get<Tag, std::unordered_map<Key, Value> >();
+		if (!map) {
+			LOG_WARN_TAG(OBJ_HUB, "Map with tag {} does not exist.", typeid(Tag).name());
+			return;
+		}
+		map->erase(key);
+	}
+
 	template<typename T>
 	bool contains() const {
 		return objects_.contains(typeid(T));
 	}
 
 	template<typename T>
+		requires(!std::is_base_of_v<PermanentTag, T>)
 	void erase() {
 		objects_.erase(typeid(T));
 	}

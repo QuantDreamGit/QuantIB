@@ -9,33 +9,35 @@
 #include "quantib/wrappers/base_wrapper.hpp"
 #include "quantib/core/account.hpp"
 #include "quantib/utils/logger.hpp"
-#include "quantib/order/hub.h"
 
 #include <memory>
 #include <optional>
 #include <thread>
 
-#include "quantib/core/position.h"
+#include "quantib/core/news_manager.h"
+#include "quantib/core/order_manager.h"
+#include "quantib/core/position_manager.h"
 
 class IB {
 public:
 	using log_level = spdlog::level::level_enum;
 	// Default Constructor
 	explicit IB(log_level lvl = LOG_TRACE_LVL) {
+		// Logger
 		logger_ = std::make_unique<Logger>(lvl);
+		// Object Hub
 		obj_ = std::make_unique<ObjectHub>(logger_);
+		// Connection Hub
 		hub_ = std::make_unique<BlockingHub>(*obj_, *logger_);
-		orders_ = std::make_unique<OrderHub>(*hub_, *logger_);
-		wrapper_ = std::make_unique<ResponseWrapper>(*hub_, *obj_, *orders_, *logger_);
+		// Client
+		wrapper_ = std::make_unique<ResponseWrapper>(*hub_, *obj_, *logger_);
 		signal_ = std::make_unique<EReaderOSSignal>(2000);
 		client_ = std::make_unique<EClientSocket>(wrapper_.get(), signal_.get());
+		// Managers
+		positions_ = std::make_unique<PositionManager>(*client_, *hub_, *obj_, *logger_);
+		orders_ = std::make_unique<OrderManager>(*client_, *hub_, *obj_, *logger_);
+		bulletins_ = std::make_unique<BulletinManager>(*client_, *hub_, *obj_, *logger_);
 
-		// Set client to order obj
-		orders_->setClient(client_.get());
-		// Create a vector of the current positions, it's automatically updated
-		hub_->subscribe<PositionStoreTag, std::vector<Position>>([&]() {
-			client_->reqPositions();
-		});
 	};
 
 	~IB() {
@@ -92,15 +94,29 @@ public:
 		LOG_DEBUG_TAG(IB_STR, "Placed order with id {} for contract {}.", nextId_ - 1, contract.symbol);
 	}
 
-	[[nodiscard]] std::optional<std::vector<OpenOrders>> getOpenOrders() const;
-	[[nodiscard]] std::optional<std::vector<ClosedOrders>> getClosedOrders() const;
+	[[nodiscard]] std::optional<std::unordered_map<int, OpenOrders>*> getOpenOrders() const;
+	[[nodiscard]] std::optional<std::unordered_map<int, ClosedOrders>*> getClosedOrders() const;
+
 	void PositionsSub() const {
 		client_->reqPositions();
 	}
 
-	[[nodiscard]] std::optional<std::vector<Position>> getPositions() const {
+	[[nodiscard]] std::optional<std::vector<Position>*> getPositions() const {
+
 		if (auto* positions = obj_->try_get<PositionStoreTag, std::vector<Position>>()) {
-			return *positions;
+			return positions;
+		}
+		return std::nullopt;
+	}
+
+	void bulletinsSub(const bool value) const {
+		if (value) bulletins_->startSubscription();
+		else bulletins_->stopSubscription();
+	}
+
+	[[nodiscard]] std::optional<std::vector<Bulletin>*> getBulletins() const {
+		if (auto* bulletins = obj_->try_get<BulletinStoreTag, std::vector<Bulletin>>()) {
+			return bulletins;
 		}
 		return std::nullopt;
 	}
@@ -116,7 +132,9 @@ protected:
 	// Mode is used to indicate whether commands should be sync or async
 	std::unique_ptr<BlockingHub> hub_;
 	std::unique_ptr<ObjectHub> obj_;
-	std::unique_ptr<OrderHub> orders_;
+	std::unique_ptr<OrderManager> orders_;
+	std::unique_ptr<PositionManager> positions_;
+	std::unique_ptr<BulletinManager> bulletins_;
 	// std::unique_ptr<RequestId> requestId_;
 	int nextId_{};
 };

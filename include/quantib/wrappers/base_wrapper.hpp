@@ -9,18 +9,13 @@
 
 #include <iostream>
 #include <memory>
-#include <utility>
 
 #include "Execution.h"
-#include "quantib/core/account.hpp"
-#include "quantib/order/hub.h"
 
 // This class is used to override default wrapper functions
 class ResponseWrapper : public DefaultEWrapper {
 public:
-	explicit ResponseWrapper(BlockingHub &hub, ObjectHub &obj, OrderHub &orders, Logger &logger) : hub_(hub), obj_(obj),
-	                                                                                               orders_(orders),
-	                                                                                               logger_(logger) {
+	explicit ResponseWrapper(BlockingHub &hub, ObjectHub &obj, Logger &logger) : hub_(hub), obj_(obj), logger_(logger) {
 		LOG_DEBUG_TAG(WRAPPER, "Initialized correctly.");
 	}
 
@@ -34,11 +29,6 @@ public:
 			hub_.send<ConnectTag>(orderId);
 		} else
 			hub_.send<NextValidIdTag>(orderId);
-	}
-
-	void position(std::string account, Contract contract, Decimal pos,
-	              double avgCost) {
-		std::cout << account << std::endl;
 	}
 
 	/* Account ids */
@@ -82,17 +72,14 @@ public:
 
 	void positionEnd() override;
 
+	void updateNewsBulletin(int msgId, int msgType, const std::string &newsMessage, const std::string &originExch) override;
+
 
 	void error(int id, time_t errorTime, int errorCode, const std::string &errorString, const std::string
-	           &advancedOrderRejectJson) override {
-		LOG_WARN_TAG(WRAPPER, "Received error with id {}: code={}, message={}, advancedOrderRejectJson={}", id,
-		             errorCode, errorString,
-		             advancedOrderRejectJson);
-	}
+	           &advancedOrderRejectJson) override;
 
 private:
 	BlockingHub &hub_;
 	ObjectHub &obj_;
-	OrderHub &orders_;
 	Logger &logger_;
 };

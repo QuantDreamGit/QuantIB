@@ -8,8 +8,8 @@
 
 struct SummaryAttributes {
 	SummaryAttributes() = default;
-	SummaryAttributes(const std::string &account_id, const std::string &value, const std::string &currency)
-		: account_id(account_id), value(value), currency(currency) {}
+	SummaryAttributes(const std::string &account_id_, const std::string &value_, const std::string &currency_)
+		: account_id(account_id_), value(value_), currency(currency_) {}
 
 	std::string account_id;
 	std::string value;
@@ -18,9 +18,8 @@ struct SummaryAttributes {
 
 struct UpdateAttribute {
 	UpdateAttribute() = default;
-	UpdateAttribute(const std::string &key, const std::string &value, const std::string &currency,
-	                const std::string &account_name)
-		: key(key), value(value), currency(currency), account_name(account_name) {}
+	UpdateAttribute(const std::string &key_, const std::string &value_, const std::string &currency_, const std::string &account_name_)
+		: key(key_), value(value_), currency(currency_), account_name(account_name_) {}
 
 	std::string key;
 	std::string value;
@@ -30,10 +29,11 @@ struct UpdateAttribute {
 
 struct PortfolioPosition {
 	PortfolioPosition() = default;
-	PortfolioPosition(const Contract &contract, const Decimal position, const double market_price, const double market_value,
-	          const double avg_cost, const double unrealized_pnl, const double realized_pnl)
-		: contract(contract), position(position), market_price(market_price), market_value(market_value),
-		  avg_cost(avg_cost), unrealized_pnl(unrealized_pnl), realized_pnl(realized_pnl) {}
+	PortfolioPosition(const Contract &contract_, const Decimal position_, const double market_price_, const double
+		market_value_,
+	          const double avg_cost_, const double unrealized_pnl_, const double realized_pnl_)
+		: contract(contract_), position(position_), market_price(market_price_), market_value(market_value_),
+		  avg_cost(avg_cost_), unrealized_pnl(unrealized_pnl_), realized_pnl(realized_pnl_) {}
 
 	Contract contract;
 	Decimal position;
