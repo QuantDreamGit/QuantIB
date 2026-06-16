@@ -13,11 +13,11 @@ void IB::accountUpdateSub() const {
 }
 
 void IB::accountUpdateCancel() const {
-	const auto account_summary = obj_->get<AccountSummary>();
+	const auto account_summary = obj_->try_get<AccountSummary>();
 	hub_->subscribe<AccountSummary>([&]() {
 		// We have to first request account id
 		// TODO: Now we suppose only one account id, but this should be generalized!
-		if (account_summary.account_id != "") client_->reqAccountUpdates(false, account_summary.account_id);
+		if (account_summary && !account_summary->account_id.empty()) client_->reqAccountUpdates(false, account_summary->account_id);
 		else LOG_CRITICAL_TAG(IB_STR, "Account Id not found during AccountUpdatedCancel.");
 	});
 
@@ -26,22 +26,30 @@ void IB::accountUpdateCancel() const {
 
 void ResponseWrapper::updateAccountValue(const std::string &key, const std::string &val, const std::string &currency,
                                          const std::string &accountName) {
-	auto new_obj = obj_->get<AccountSummary>();
-	new_obj.update_attributes[key] = UpdateAttribute(key, val, currency, accountName);
+	auto new_obj = obj_->try_get<AccountSummary>();
+	if (!new_obj) {
+		LOG_CRITICAL_TAG(IB_STR, "Account Summary object not found during updateAccountValue.");
+		return;
+	}
+	new_obj->update_attributes[key] = UpdateAttribute(key, val, currency, accountName);
 	LOG_TRACE_TAG(IB_STR, "Account Summary update. [Key: {}, Value: {}, Currency: {}, Account Name: {}].", key, val,
 	              currency, accountName);
 	// Update
-	obj_->update(new_obj);
+	obj_->update_or_create(new_obj);
 }
 
 void ResponseWrapper::updatePortfolio(const Contract &contract, const Decimal position, const double marketPrice,
                                       const double marketValue, const double averageCost, const double unrealizedPNL,
                                       const double realizedPNL, const std::string &accountName) {
-	auto new_obj = obj_->get<AccountSummary>();
+	auto *new_obj = obj_->try_get<AccountSummary>();
+	if (!new_obj) {
+		LOG_CRITICAL_TAG(IB_STR, "Account Summary object not found during updatePortfolio.");
+		return;
+	}
 	// We suppose that the contract symbol is unique, but this should be generalized!
 
 	// Linear scan of currently open positions
-	for (auto it = new_obj.portfolio.begin(), end = new_obj.portfolio.end(); it != end; ++it) {
+	for (auto it = new_obj->portfolio.begin(), end = new_obj->portfolio.end(); it != end; ++it) {
 		if (it->contract.symbol == contract.symbol) {
 			it->position = position;
 			it->market_price = marketPrice;
@@ -58,13 +66,13 @@ void ResponseWrapper::updatePortfolio(const Contract &contract, const Decimal po
 				realizedPNL,
 				accountName);
 			 // Send new version
-			hub_->send<AccountSummary, AccountSummary>(new_obj);
+			hub_->send<AccountSummary, AccountSummary>(*new_obj);
 			return;
 		}
 	}
 
 	// Otherwise insert new position
-	new_obj.portfolio.emplace_back(contract, position, marketPrice, marketValue, averageCost, unrealizedPNL, realizedPNL);
+	new_obj->portfolio.emplace_back(contract, position, marketPrice, marketValue, averageCost, unrealizedPNL, realizedPNL);
 
 	LOG_TRACE_TAG(
 		IB_STR, "New position added to Account Summary. [Contract: {}, Position: {}, Market Price: {}, Market Value: "
@@ -74,16 +82,20 @@ void ResponseWrapper::updatePortfolio(const Contract &contract, const Decimal po
 		realizedPNL,
 		accountName);
 	// Update
-	obj_->update(new_obj);
+	obj_->update_or_create(new_obj);
 }
 
 void ResponseWrapper::updateAccountTime(const std::string& timeStamp) {
-	auto new_obj = obj_->get<AccountSummary>();
-	new_obj.last_update_time = timeStamp;
+	auto new_obj = obj_->try_get<AccountSummary>();
+	if (!new_obj) {
+		LOG_CRITICAL_TAG(IB_STR, "Account Summary object not found during updateAccountTime.");
+		return;
+	}
+	new_obj->last_update_time = timeStamp;
 	LOG_TRACE_TAG(IB_STR, "Account Summary update. [Last Update Time: {}].", timeStamp);
 
 	// Update
-	obj_->update(new_obj);
+	obj_->update_or_create(new_obj);
 }
 
 void ResponseWrapper::accountDownloadEnd(const std::string &accountName) {

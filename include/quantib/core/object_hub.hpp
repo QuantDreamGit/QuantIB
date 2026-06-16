@@ -1,7 +1,6 @@
 #pragma once
 
 #include <memory>
-#include <stdexcept>
 #include <typeindex>
 #include <typeinfo>
 #include <unordered_map>
@@ -11,18 +10,32 @@
 
 struct IHolder {
 	virtual ~IHolder() = default;
+
+	[[nodiscard]] virtual std::type_index type() const noexcept = 0;
 };
 
 template<typename T>
-struct Holder : IHolder {
+// Final attribute let us avoid dynamic cast since compiler knows that this struct
+// won't be subclassed.
+struct Holder final : IHolder {
+	// Store object of type T in a unique pointer
 	template<typename... Args>
 	explicit Holder(Args &&... args)
 		: ptr(std::make_unique<T>(std::forward<Args>(args)...)) {
 	}
 
+	// Type util
+	[[nodiscard]] std::type_index type() const noexcept override {
+		return typeid(T);
+	}
+
 	std::unique_ptr<T> ptr;
 };
 
+// References must be sent correctly while pointers can be also nullptr.
+// In this way I can build a more robust system that avoids runtime errors when using get or try_get.
+// Create -> return reference
+// Get -> return pointer
 class ObjectHub {
 public:
 	explicit ObjectHub(const std::shared_ptr<Logger> &logger) : logger_(logger) {
@@ -31,11 +44,12 @@ public:
 
 	~ObjectHub() = default;
 
+	// Create a new object, if already present return its reference
 	template<typename Tag, typename T, typename... Args>
 	T &create(Args &&... args) {
 		if (objects_.contains(typeid(Tag))) {
 			LOG_WARN_TAG(OBJ_HUB, "Cannot create: object already exists");
-			return get<Tag, T>();
+			return *get_or_create<Tag, T>(std::forward<Args>(args)...);
 		}
 		auto holder = std::make_unique<Holder<T> >(std::forward<Args>(args)...);
 		T &ref = *holder->ptr;
@@ -49,6 +63,7 @@ public:
 		return create<T, T>(std::forward<Args>(args)...);
 	}
 
+	// Insert an existing object
 	template<typename Tag, typename T>
 	T &insert(T obj) {
 		auto holder = std::make_unique<Holder<T> >(std::move(obj));
@@ -64,107 +79,86 @@ public:
 		return insert<T, T>(std::move(obj));
 	}
 
+	// Update an existing object with a given value
 	template<typename Tag, typename T>
-	T &update(T value) {
-		auto &obj = get<Tag, T>();
-		obj = std::move(value);
+	void update_or_create(T value) {
+		auto *obj = try_get<Tag, T>();
+
+		if (!obj) {
+			LOG_WARN_TAG(OBJ_HUB, "Cannot update object with tag {}: object does not exist or has wrong type.",
+				typeid(Tag).name());
+			insert<Tag, T>(std::move(value));
+			return;
+		}
+		*obj = std::move(value);
 		LOG_TRACE_TAG(OBJ_HUB, "Updated object of type {} with tag {}.", typeid(T).name(), typeid(Tag).name());
-		return obj;
 	}
 
 	template<typename T>
-	T &update(T value) {
-		return update<T, T>(std::move(value));
+	void update_or_create(T value) {
+		return update_or_create<T, T>(std::move(value));
 	}
 
-	template<typename Tag, typename T>
-	T &get_or_default() {
-		const std::type_index key = typeid(Tag);
-		const auto it = objects_.find(key);
-		// If you can't find it create it using default constructor
-		if (it == objects_.end()) {
-			return create<Tag, T>();
-		}
-		// Otherwise, cast it to required type
-		auto *holder = dynamic_cast<Holder<T> *>(it->second.get());
-
-		if (!holder) {
-			LOG_CRITICAL_TAG(OBJ_HUB, "Cannot get ({}): stored object has different type. ", typeid(Tag).name());
-			throw std::runtime_error("Cannot get: stored object has different type");
-		}
-		// LOG_TRACE_TAG(OBJ_HUB, "Got object of type {} with tag {}.", typeid(T).name(), typeid(Tag).name());
-		return *holder->ptr;
-	}
-
+	// Get an existing object
 	template<typename T>
-	T &get_or_default() {
-		return get_or_default<T, T>();
+	T *get_or_create() {
+		return get_or_create<T, T>();
 	}
 
 	template<typename Tag, typename T, typename... Args>
-	T &get_or_default(Args &&... args) {
-		const std::type_index key = typeid(Tag);
-		const auto it = objects_.find(key);
+	T *get_or_create(Args &&... args) {
+		const auto it = objects_.find(typeid(Tag));
 		// If you can't find it create it using default constructor
 		if (it == objects_.end()) {
 			LOG_TRACE_TAG(OBJ_HUB, "Object with tag {} not found. Creating it using provided arguments.",
 			              typeid(Tag).name());
-			return create<Tag, T>(std::forward<Args>(args)...);
+			return &create<Tag, T>(std::forward<Args>(args)...);
 		}
-		// Otherwise, cast it to required type
-		auto *holder = dynamic_cast<Holder<T> *>(it->second.get());
-		if (!holder) {
-			LOG_CRITICAL_TAG(OBJ_HUB, "Cannot get ({}): stored object has different type. ", typeid(Tag).name());
-			throw std::runtime_error("Cannot get: stored object has different type");
-		}
-		// LOG_TRACE_TAG(OBJ_HUB, "Got object of type {} with tag {}.", typeid(T).name(), typeid(Tag).name());
-		return *holder->ptr;
+		// We have to cast from IHolder<T> to Holder<T> class
+		auto *holder = static_cast<Holder<T> *>(it->second.get());
+		return holder->ptr.get();
 	}
 
 	template<typename Tag, typename T>
-	T &get() {
-		const std::type_index key = typeid(Tag);
-		const auto it = objects_.find(key);
+	T *try_get() {
+		const auto it = objects_.find(typeid(Tag));
 		// If you can't find it create it using default constructor
 		if (it == objects_.end()) {
-			LOG_CRITICAL_TAG(OBJ_HUB, "Cannot get ({}): stored object does not exist.", typeid(Tag).name());
+			LOG_WARN_TAG(OBJ_HUB, "Cannot get ({}): stored object does not exist, returning a nullptr.", typeid(Tag)
+			             .name());
+			return nullptr;
 		}
-		// Otherwise, cast it to required type
-		auto *holder = dynamic_cast<Holder<T> *>(it->second.get());
-		if (!holder) {
-			LOG_CRITICAL_TAG(OBJ_HUB, "Cannot get ({}): stored object has different type", typeid(Tag).name());
-		}
-		// LOG_TRACE_TAG(OBJ_HUB, "Got object of type {} with tag {}.", typeid(T).name(), typeid(Tag).name());
-		return *holder->ptr;
+		// We have to cast from IHolder<T> to Holder<T> class
+		auto *holder = static_cast<Holder<T> *>(it->second.get());
+		return holder->ptr.get();
 	}
 
 	template<typename T>
-	T &get() {
-		return get<T, T>();
+	T *try_get() {
+		return try_get<T, T>();
 	}
 
+	// Append to an objects of type: std::vector<T>
 	template<typename Tag, typename T>
-	void append(T value) {
-		const std::type_index key = typeid(Tag);
-		const auto it = objects_.find(key);
+	void try_append(T value) {
+		const auto it = objects_.find(typeid(Tag));
 		// If you can't find it create it using default constructor
 		if (it == objects_.end()) {
-			LOG_CRITICAL_TAG(OBJ_HUB, "Cannot append ({}): stored object does not exist.", typeid(Tag).name());
+			LOG_WARN_TAG(OBJ_HUB, "Cannot append ({}): stored object does not exist. It will "
+			             "be created.", typeid(Tag).name());
+			auto &obj = create<Tag, std::vector<T> >();
+			obj.emplace_back(std::move(value));
+			return;
 		}
-		// Otherwise, cast it to required type
-		auto *holder = dynamic_cast<Holder<std::vector<T>> *>(it->second.get());
-
-		if (!holder) {
-			LOG_CRITICAL_TAG(OBJ_HUB, "Cannot get ({}): stored object has different type. ", typeid(Tag).name());
-			throw std::runtime_error("Cannot get: stored object has different type");
-		}
+		// We have to cast from IHolder<T> to Holder<T> class
+		auto* holder = static_cast<Holder<std::vector<T>>*>(it->second.get());
 		// Check if std::vector<T> is stored
 		holder->ptr->emplace_back(std::move(value));
 	}
 
 	template<typename T>
-	void append(T value) {
-		return append<T, T>(std::move(value));
+	void try_append(T value) {
+		return try_append<T, T>(std::move(value));
 	}
 
 	template<typename T>

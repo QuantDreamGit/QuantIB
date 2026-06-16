@@ -127,7 +127,7 @@ public:
 			// obj_->insert<T>(key, std::move(value));
 			// isReady_[key] = true;
 			// } else {
-			obj_->update<Tag, T>(std::forward<T>(value));
+			obj_->update_or_create<Tag, T>(std::forward<T>(value));
 			// }
 		}
 	}

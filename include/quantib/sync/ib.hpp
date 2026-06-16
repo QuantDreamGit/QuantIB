@@ -33,7 +33,7 @@ public:
 		// Set client to order obj
 		orders_->setClient(client_.get());
 		// Create a vector of the current positions, it's automatically updated
-		hub_->subscribe<PositionTag, std::vector<Position>>([&]() {
+		hub_->subscribe<PositionStoreTag, std::vector<Position>>([&]() {
 			client_->reqPositions();
 		});
 	};
@@ -98,8 +98,11 @@ public:
 		client_->reqPositions();
 	}
 
-	std::optional<std::vector<Position>> getPositions() const {
-		return obj_->get<PositionTag, std::vector<Position>>();
+	[[nodiscard]] std::optional<std::vector<Position>> getPositions() const {
+		if (auto* positions = obj_->try_get<PositionStoreTag, std::vector<Position>>()) {
+			return *positions;
+		}
+		return std::nullopt;
 	}
 
 protected:
