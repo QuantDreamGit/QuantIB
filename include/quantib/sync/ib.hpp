@@ -22,11 +22,11 @@ public:
 	using log_level = spdlog::level::level_enum;
 	// Default Constructor
 	explicit IB(log_level lvl = LOG_TRACE_LVL) {
-		logger_ = std::make_shared<Logger>(lvl);
-		obj_ = std::make_shared<ObjectHub>(logger_);
-		hub_ = std::make_shared<BlockingHub>(obj_, logger_);
-		orders_ = std::make_shared<OrderHub>(hub_, logger_);
-		wrapper_ = std::make_unique<ResponseWrapper>(hub_, obj_, orders_, logger_);
+		logger_ = std::make_unique<Logger>(lvl);
+		obj_ = std::make_unique<ObjectHub>(logger_);
+		hub_ = std::make_unique<BlockingHub>(*obj_, *logger_);
+		orders_ = std::make_unique<OrderHub>(*hub_, *logger_);
+		wrapper_ = std::make_unique<ResponseWrapper>(*hub_, *obj_, *orders_, *logger_);
 		signal_ = std::make_unique<EReaderOSSignal>(2000);
 		client_ = std::make_unique<EClientSocket>(wrapper_.get(), signal_.get());
 
@@ -114,9 +114,9 @@ protected:
 	std::thread message_thread_;
 	std::atomic_bool isRunning_{false};
 	// Mode is used to indicate whether commands should be sync or async
-	std::shared_ptr<BlockingHub> hub_;
-	std::shared_ptr<ObjectHub> obj_;
-	std::shared_ptr<OrderHub> orders_;
+	std::unique_ptr<BlockingHub> hub_;
+	std::unique_ptr<ObjectHub> obj_;
+	std::unique_ptr<OrderHub> orders_;
 	// std::unique_ptr<RequestId> requestId_;
 	int nextId_{};
 };

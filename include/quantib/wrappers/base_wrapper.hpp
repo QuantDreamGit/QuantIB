@@ -18,10 +18,9 @@
 // This class is used to override default wrapper functions
 class ResponseWrapper : public DefaultEWrapper {
 public:
-	explicit ResponseWrapper(std::shared_ptr<BlockingHub> hub, std::shared_ptr<ObjectHub> obj,
-	                         std::shared_ptr<OrderHub> orders,
-	                         const std::shared_ptr<Logger> &logger) : hub_(std::move(hub)), obj_(std::move(obj)),
-	                                                                  orders_(std::move(orders)), logger_(logger) {
+	explicit ResponseWrapper(BlockingHub &hub, ObjectHub &obj, OrderHub &orders, Logger &logger) : hub_(hub), obj_(obj),
+	                                                                                               orders_(orders),
+	                                                                                               logger_(logger) {
 		LOG_DEBUG_TAG(WRAPPER, "Initialized correctly.");
 	}
 
@@ -31,10 +30,10 @@ public:
 	// void connectAck() override { hub_->send(typeid(connectTag), true); }
 
 	void nextValidId(const int orderId) override {
-		if (hub_->containsKey<ConnectTag>()) {
-			hub_->send<ConnectTag>(orderId);
+		if (hub_.containsKey<ConnectTag>()) {
+			hub_.send<ConnectTag>(orderId);
 		} else
-			hub_->send<NextValidIdTag>(orderId);
+			hub_.send<NextValidIdTag>(orderId);
 	}
 
 	void position(std::string account, Contract contract, Decimal pos,
@@ -84,7 +83,6 @@ public:
 	void positionEnd() override;
 
 
-
 	void error(int id, time_t errorTime, int errorCode, const std::string &errorString, const std::string
 	           &advancedOrderRejectJson) override {
 		LOG_WARN_TAG(WRAPPER, "Received error with id {}: code={}, message={}, advancedOrderRejectJson={}", id,
@@ -93,8 +91,8 @@ public:
 	}
 
 private:
-	std::shared_ptr<BlockingHub> hub_;
-	std::shared_ptr<ObjectHub> obj_;
-	std::shared_ptr<OrderHub> orders_;
-	std::shared_ptr<Logger> logger_;
+	BlockingHub &hub_;
+	ObjectHub &obj_;
+	OrderHub &orders_;
+	Logger &logger_;
 };

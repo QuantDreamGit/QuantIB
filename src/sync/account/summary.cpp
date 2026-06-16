@@ -26,12 +26,12 @@ void ResponseWrapper::accountSummary(const int reqId, const std::string &account
                                      const std::string &currency) {
 	// Update object
 	// Since it's a subscription we know that obj is already created
-	const auto new_obj = obj_->get_or_create<AccountSummary>();
+	const auto new_obj = obj_.get_or_create<AccountSummary>();
 	new_obj->reqId = reqId;
 	new_obj->attributes[tag] = SummaryAttributes(account, value, currency);
 	LOG_TRACE_TAG(IB_STR, "Account Summary update. [Tag: {}] [Value: {}].", tag, value);
 	// Send new version
-	obj_->update_or_create(new_obj);
+	obj_.update_or_create(new_obj);
 }
 
 void ResponseWrapper::accountSummaryEnd(int reqId) {

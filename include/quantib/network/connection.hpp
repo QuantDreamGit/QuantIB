@@ -1,3 +1,4 @@
+#pragma once
 #include "quantib/core/object_hub.hpp"
 #include "quantib/core/tags.hpp"
 #include <any>
@@ -17,8 +18,7 @@ public:
 	using RequestFunc = std::function<void()>;
 	using Clock = std::chrono::steady_clock;
 
-	explicit BlockingHub(std::shared_ptr<ObjectHub> obj, const std::shared_ptr<Logger> &logger) : obj_(std::move(obj)),
-	                                                                                              logger_(logger) {
+	explicit BlockingHub(ObjectHub &obj, Logger &logger) : obj_(obj), logger_(logger) {
 		LOG_DEBUG_TAG(OBJ_HUB, "Initialized correctly.");
 	}
 
@@ -82,7 +82,7 @@ public:
 			// simple as possible.
 			// Later implementations will take this into consideration!
 			pendingTag_.insert(typeid(Tag));
-			obj_->create<Tag, T>();
+			obj_.create<Tag, T>();
 		}
 		// Then do RequestFunc
 		request();
@@ -99,7 +99,7 @@ public:
 		{
 			std::lock_guard<std::mutex> lk(mtx_);
 			pendingTag_.insert(typeid(Tag));
-			obj_->create<Tag, T>(std::forward<Args>(args)...);
+			obj_.create<Tag, T>(std::forward<Args>(args)...);
 		}
 		// Then do RequestFunc
 		request();
@@ -127,7 +127,7 @@ public:
 			// obj_->insert<T>(key, std::move(value));
 			// isReady_[key] = true;
 			// } else {
-			obj_->update_or_create<Tag, T>(std::forward<T>(value));
+			obj_.update_or_create<Tag, T>(std::forward<T>(value));
 			// }
 		}
 	}
@@ -151,10 +151,10 @@ public:
 	}
 
 private:
-	std::shared_ptr<Logger> logger_;
+	Logger &logger_;
 	std::mutex mtx_;
 	std::condition_variable cv_;
-	std::shared_ptr<ObjectHub> obj_;
+	ObjectHub &obj_;
 	std::unordered_set<std::type_index> pendingTag_;
 	std::unordered_map<std::type_index, bool> isReady_;
 	std::unordered_map<std::type_index, std::any> value_;

@@ -18,7 +18,7 @@
 // Variadic macros so that it's more handy to log
 #define LOG_INFO_TAG(tag, msg, ...) logger_->info("{}" msg, tag, ##__VA_ARGS__)
 #define LOG_DEBUG_TAG(tag, msg, ...) logger_->debug("{}" msg, tag, ##__VA_ARGS__)
-#define LOG_ERROR_TAG(tag, msg, ...) logger_->error("{}" msg, tag, ##__ VA_ARGS__)
+#define LOG_ERROR_TAG(tag, msg, ...) logger_->error("{}" msg, tag, ##__VA_ARGS__)
 #define LOG_WARN_TAG(tag, msg, ...) logger_->warn("{}" msg, tag, ##__VA_ARGS__)
 #define LOG_CRITICAL_TAG(tag, msg, ...) logger_->critical("{}" msg, tag, ##__VA_ARGS__)
 #define LOG_TRACE_TAG(tag, msg, ...) logger_->trace("{}" msg, tag, ##__VA_ARGS__)
@@ -96,6 +96,14 @@ public:
 	template<typename... Args>
 	void warn(fmt::format_string<Args...> msg, Args&&... args) {
 		logger_->warn(msg, std::forward<Args>(args)...);
+	}
+
+	spdlog::logger* operator->() noexcept {
+		return logger_.get();
+	}
+
+	const spdlog::logger* operator->() const noexcept {
+		return logger_.get();
 	}
 
 private:

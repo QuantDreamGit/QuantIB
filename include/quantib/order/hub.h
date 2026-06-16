@@ -64,13 +64,14 @@ struct ClosedOrders {
 
 class OrderHub {
 public:
-	explicit OrderHub(std::shared_ptr<BlockingHub> hub,
-	                  std::shared_ptr<Logger> logger) : hub_(std::move(hub)), logger_(std::move(logger)) {
+	explicit OrderHub(BlockingHub &hub,
+	                  Logger &logger) : client_(nullptr), hub_(hub), logger_(logger) {
 		LOG_DEBUG_TAG(ORDER_HUB, "Initialized correctly.");
 	}
 
 	void setClient(EClientSocket *client) {
 		client_ = client;
+		LOG_DEBUG_TAG(ORDER_HUB, "Set client for OrderHub.");
 	}
 
 	void updateOpenOrders(const int orderId, const Contract &contract, const Order &order, const OrderState
@@ -134,8 +135,8 @@ public:
 
 private:
 	EClientSocket *client_;
-	std::shared_ptr<BlockingHub> hub_;
-	std::shared_ptr<Logger> logger_;
+	BlockingHub &hub_;
+	Logger &logger_;
 
 	std::unordered_map<int, OpenOrders> openOrders_;
 	std::unordered_map<int, ClosedOrders> closedOrders_;

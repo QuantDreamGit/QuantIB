@@ -26,7 +26,7 @@ void IB::accountUpdateCancel() const {
 
 void ResponseWrapper::updateAccountValue(const std::string &key, const std::string &val, const std::string &currency,
                                          const std::string &accountName) {
-	auto new_obj = obj_->try_get<AccountSummary>();
+	auto new_obj = obj_.try_get<AccountSummary>();
 	if (!new_obj) {
 		LOG_CRITICAL_TAG(IB_STR, "Account Summary object not found during updateAccountValue.");
 		return;
@@ -35,13 +35,13 @@ void ResponseWrapper::updateAccountValue(const std::string &key, const std::stri
 	LOG_TRACE_TAG(IB_STR, "Account Summary update. [Key: {}, Value: {}, Currency: {}, Account Name: {}].", key, val,
 	              currency, accountName);
 	// Update
-	obj_->update_or_create(new_obj);
+	obj_.update_or_create(new_obj);
 }
 
 void ResponseWrapper::updatePortfolio(const Contract &contract, const Decimal position, const double marketPrice,
                                       const double marketValue, const double averageCost, const double unrealizedPNL,
                                       const double realizedPNL, const std::string &accountName) {
-	auto *new_obj = obj_->try_get<AccountSummary>();
+	auto *new_obj = obj_.try_get<AccountSummary>();
 	if (!new_obj) {
 		LOG_CRITICAL_TAG(IB_STR, "Account Summary object not found during updatePortfolio.");
 		return;
@@ -66,7 +66,7 @@ void ResponseWrapper::updatePortfolio(const Contract &contract, const Decimal po
 				realizedPNL,
 				accountName);
 			 // Send new version
-			hub_->send<AccountSummary, AccountSummary>(*new_obj);
+			hub_.send<AccountSummary, AccountSummary>(*new_obj);
 			return;
 		}
 	}
@@ -82,11 +82,11 @@ void ResponseWrapper::updatePortfolio(const Contract &contract, const Decimal po
 		realizedPNL,
 		accountName);
 	// Update
-	obj_->update_or_create(new_obj);
+	obj_.update_or_create(new_obj);
 }
 
 void ResponseWrapper::updateAccountTime(const std::string& timeStamp) {
-	auto new_obj = obj_->try_get<AccountSummary>();
+	auto new_obj = obj_.try_get<AccountSummary>();
 	if (!new_obj) {
 		LOG_CRITICAL_TAG(IB_STR, "Account Summary object not found during updateAccountTime.");
 		return;
@@ -95,7 +95,7 @@ void ResponseWrapper::updateAccountTime(const std::string& timeStamp) {
 	LOG_TRACE_TAG(IB_STR, "Account Summary update. [Last Update Time: {}].", timeStamp);
 
 	// Update
-	obj_->update_or_create(new_obj);
+	obj_.update_or_create(new_obj);
 }
 
 void ResponseWrapper::accountDownloadEnd(const std::string &accountName) {
