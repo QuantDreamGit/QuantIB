@@ -7,7 +7,7 @@ struct Position {
 	std::string account;
 	Contract contract;
 	Decimal pos;
-	double avgCost;
+	double avgCost{};
 
 	Position() = default;
 
