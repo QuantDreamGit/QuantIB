@@ -1,4 +1,4 @@
-#include "quantib/core/news_manager.h"
+#include "quantib/core/bulletin_manager.h"
 #include "quantib/wrappers/base_wrapper.hpp"
 
 void ResponseWrapper::updateNewsBulletin(int msgId, int msgType, const std::string &newsMessage, const std::string &originExch) {
