@@ -227,6 +227,44 @@ public:
 		map->erase(key);
 	}
 
+	template<typename Tag, typename Key, typename Value>
+	void clear_map() {
+		auto *map = try_get<Tag, std::unordered_map<Key, Value> >();
+		if (!map) {
+			LOG_WARN_TAG(OBJ_HUB, "Map with tag {} does not exist.", typeid(Tag).name());
+			return;
+		}
+		map->clear();
+	}
+
+	template<typename Tag, typename T>
+	void clear_vec() {
+		auto *vec = try_get<Tag, std::vector<T>>();
+		if (!vec) {
+			LOG_WARN_TAG(OBJ_HUB, "Map with tag {} does not exist.", typeid(Tag).name());
+			return;
+		}
+		vec->clear();
+	}
+
+	template<typename Tag>
+	void set_bool(bool value) {
+		auto *elem = try_get<Tag, bool>();
+
+		if (elem == nullptr) return;
+
+		*elem = value;
+	}
+
+	template<typename Tag, typename... Args>
+	void set_or_create_bool(bool value, Args... args) {
+		auto *elem = get_or_create<Tag, bool>(std::forward<Args>(args)...);
+
+		if (elem == nullptr) return;
+
+		*elem = value;
+	}
+
 	template<typename T>
 	bool contains() const {
 		return objects_.contains(typeid(T));

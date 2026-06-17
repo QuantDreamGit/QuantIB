@@ -4,8 +4,7 @@ void ResponseWrapper::position(const std::string &account, const Contract &contr
 	LOG_TRACE_TAG(WRAPPER, "Received position update for account {} and contract {}: position={}, avgCost={}", account,
 				  contract.symbol, DecimalFunctions::decimalToString(position), avgCost);
 	Position pos{account, contract, position, avgCost};
-	obj_.try_append<PositionStoreTag, Position>(std::move(pos));
-
+	obj_.insert_or_assign<PositionStoreTag, int, Position>(contract.conId, pos);
 }
 
 void ResponseWrapper::positionEnd() {

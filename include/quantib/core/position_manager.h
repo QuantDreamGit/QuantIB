@@ -28,14 +28,14 @@ public:
 		logger_(logger), client_(client), obj_(obj), hub_(hub) {
 
 		// Create the subscription
-		hub_.subscribe<PositionStoreTag, std::vector<Position> >([&]() {
+		hub_.subscribe<PositionStoreTag, std::unordered_map<int, Position> >([&]() {
 			client_.reqPositions();
 		});
 		// Get the pointer to the position store
-		positions_ = obj_.get_or_create<PositionStoreTag,std::vector<Position> >();
+		positions_ = obj_.get_or_create<PositionStoreTag,std::unordered_map<int, Position>>();
 	}
 
-	[[nodiscard]] const std::vector<Position> *getPositions() const {
+	[[nodiscard]] const std::unordered_map<int, Position> *getPositions() const {
 		return positions_;
 	}
 
@@ -45,5 +45,5 @@ private:
 	ObjectHub &obj_;
 	BlockingHub &hub_;
 
-	std::vector<Position> *positions_;
+	std::unordered_map<int, Position> *positions_;
 };

@@ -99,9 +99,9 @@ public:
 		client_->reqPositions();
 	}
 
-	[[nodiscard]] std::optional<std::vector<Position>*> getPositions() const {
+	[[nodiscard]] std::optional<std::unordered_map<int, Position>*> getPositions() const {
 
-		if (auto* positions = obj_->try_get<PositionStoreTag, std::vector<Position>>()) {
+		if (auto* positions = obj_->try_get<PositionStoreTag, std::unordered_map<int, Position>>()) {
 			return positions;
 		}
 		return std::nullopt;
