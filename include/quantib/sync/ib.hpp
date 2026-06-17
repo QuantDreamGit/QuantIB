@@ -14,7 +14,7 @@
 #include <optional>
 #include <thread>
 
-#include "quantib/core/news_manager.h"
+#include "quantib/core/bulletin_manager.h"
 #include "quantib/core/order_manager.h"
 #include "quantib/core/position_manager.h"
 
@@ -33,11 +33,6 @@ public:
 		wrapper_ = std::make_unique<ResponseWrapper>(*hub_, *obj_, *logger_);
 		signal_ = std::make_unique<EReaderOSSignal>(2000);
 		client_ = std::make_unique<EClientSocket>(wrapper_.get(), signal_.get());
-		// Managers
-		positions_ = std::make_unique<PositionManager>(*client_, *hub_, *obj_, *logger_);
-		orders_ = std::make_unique<OrderManager>(*client_, *hub_, *obj_, *logger_);
-		bulletins_ = std::make_unique<BulletinManager>(*client_, *hub_, *obj_, *logger_);
-
 	};
 
 	~IB() {
@@ -69,6 +64,9 @@ public:
 
 			nextId_ = hub_->wait_for<ConnectTag, int>([&]() {
 			}).value_or(-1);
+
+			initializeManagers();
+
 			return nextId_;
 		}
 
@@ -121,7 +119,19 @@ public:
 		return std::nullopt;
 	}
 
+	[[nodiscard]] EClientSocket& getClient() const {
+		return *client_;
+	}
+
 protected:
+
+	void initializeManagers() {
+		// Managers
+		positions_ = std::make_unique<PositionManager>(*client_, *hub_, *obj_, *logger_);
+		orders_ = std::make_unique<OrderManager>(*client_, *hub_, *obj_, *logger_);
+		// bulletins_ = std::make_unique<BulletinManager>(*client_, *hub_, *obj_, *logger_);
+	}
+
 	std::shared_ptr<Logger> logger_;
 	std::unique_ptr<ResponseWrapper> wrapper_;
 	std::unique_ptr<EReaderOSSignal> signal_;
@@ -134,7 +144,7 @@ protected:
 	std::unique_ptr<ObjectHub> obj_;
 	std::unique_ptr<OrderManager> orders_;
 	std::unique_ptr<PositionManager> positions_;
-	std::unique_ptr<BulletinManager> bulletins_;
+	std::unique_ptr<NewsManager> bulletins_;
 	// std::unique_ptr<RequestId> requestId_;
 	int nextId_{};
 };
