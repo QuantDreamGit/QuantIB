@@ -5,8 +5,8 @@
 #include "quantib/network/connection.hpp"
 
 struct Bulletin {
-	int msg_id;
-	int msg_type;
+	int msg_id{};
+	int msg_type{};
 	std::string message;
 	std::string orig_exchange;
 
@@ -20,13 +20,13 @@ struct Bulletin {
 	}
 };
 
-class BulletinManager {
+class NewsManager {
 public:
-	BulletinManager(EClientSocket &client, BlockingHub &hub, ObjectHub &obj, Logger &logger) : logger_(logger),
+	NewsManager(EClientSocket &client, BlockingHub &hub, ObjectHub &obj, Logger &logger) : logger_(logger),
 	                                                                                           client_(client),
 	                                                                                           obj_(obj), hub_(hub) {
 		// Create object where to store bulletin
-		bulletins_ = obj_.try_get<BulletinStoreTag, std::vector<Bulletin> >();
+		news_ = obj_.try_get<BulletinStoreTag, std::vector<Bulletin> >();
 	}
 
 	void startSubscription() const {
@@ -38,8 +38,8 @@ public:
 	}
 
 	void getBulletins() const {
-		if (bulletins_) {
-			for (const auto &bulletin: *bulletins_) {
+		if (news_) {
+			for (const auto &bulletin: *news_) {
 				LOG_INFO_TAG(BULLETIN, "Bulletin id: {}, type: {}, message: {}, exchange: {}.", bulletin.msg_id,
 				             bulletin.msg_type, bulletin.message, bulletin.orig_exchange);
 			}
@@ -49,8 +49,8 @@ public:
 	}
 
 	void getLastBulletin() const {
-		if (bulletins_ && !bulletins_->empty()) {
-			const auto &bulletin = bulletins_->back();
+		if (news_ && !news_->empty()) {
+			const auto &bulletin = news_->back();
 			LOG_INFO_TAG(BULLETIN, "Last Bulletin id: {}, type: {}, message: {}, exchange: {}.", bulletin.msg_id,
 			             bulletin.msg_type, bulletin.message, bulletin.orig_exchange);
 		} else {
@@ -64,5 +64,5 @@ private:
 	ObjectHub &obj_;
 	BlockingHub &hub_;
 
-	std::vector<Bulletin> *bulletins_;
+	std::vector<Bulletin> *news_;
 };
