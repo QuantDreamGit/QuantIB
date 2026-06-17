@@ -1,6 +1,7 @@
 #include "quantib/server/server.h"
 
 #include "quantib/order/order_types.hpp"
+#include "nlohmann/json.hpp"
 
 void HttpServerIB::start(std::string host, int port) {
 	std::cout << "HTTP server running on http://" << host << ":" << port << "\n";
@@ -19,40 +20,55 @@ void HttpServerIB::setupRoutes() {
 
 		std::string json = "[";
 		bool first = true;
+		nlohmann::json out = nlohmann::json::array();
 		for (const auto& p : *positions.value()) {
-			if (!first) json += ",";
-			first = false;
-
-			json += "{";
-			json += "\"symbol\":\"" + p.contract.symbol + "\",";
-			json += "\"exchange\":" + p.contract.exchange + ",";
-			json += "\"avgCost\":" + std::to_string(p.avgCost);
-			json += "}";
+			out.push_back({
+				{"symbol", p.second.contract.symbol},
+				{"exchange", p.second.contract.exchange},
+				{"position", DecimalFunctions::decimalToString(p.second.pos)},
+				{"avgCost", p.second.avgCost}
+			});
 		}
 
-		json += "]";
-
-		res.set_content(json, "application/json");
+		res.set_content(out.dump(), "application/json");
 	});
 
-	server_.Post("/test_order", [&](const httplib::Request&, httplib::Response& res) {
+	server_.Post("/order", [&](const httplib::Request& req,
+							   httplib::Response& res) {
+
+		auto body = nlohmann::json::parse(req.body);
+
+		std::string symbol = body["symbol"];
+		std::string side = body["side"];
+		double quantity = body["quantity"];
+
 		Contract contract;
-		contract.symbol = "EXW1";
+		contract.symbol = symbol;
 		contract.secType = "STK";
 		contract.exchange = "SMART";
-		contract.currency = "EUR";
+		contract.currency = "USD";
 
-		// We can request contract details that have contract information AND other infos,
-		// Otherwise, it's possible to directly fetch contracts
-		// auto result = ib->getContractDetails(1, contract);
 		auto result = ib_.getContracts(1, contract);
 
-		if (result.has_value() && result.value().size() == 1) {
-			const auto order = OrderSamples::MarketOrder("BUY", DecimalFunctions::doubleToDecimal(1.0));
-			const auto final_contract = result.value()[0];
-			ib_.placeOrder(final_contract, order);
+		if (!result.has_value() || result->size() != 1) {
+			res.status = 400;
+			res.set_content(
+				R"({"ok":false,"error":"Contract not found"})",
+				"application/json"
+			);
+			return;
 		}
 
-	res.set_content(R"({"ok":true,"message":"Test order sent"})", "application/json");
-});
+		auto order = OrderSamples::MarketOrder(
+			side,
+			DecimalFunctions::doubleToDecimal(quantity)
+		);
+
+		ib_.placeOrder(result->at(0), order);
+
+		res.set_content(
+			R"({"ok":true})",
+			"application/json"
+		);
+	});
 }
