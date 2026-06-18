@@ -15,12 +15,17 @@ struct MarketData {
 	std::unordered_map<TickType, std::string> string_map;
 };
 
+struct MarketDataStore {
+	mutable std::shared_mutex mtx;
+	MarketData data;
+};
+
 class DataManager {
 public:
 	DataManager(EClientSocket &client, BlockingHub &hub, ObjectHub &obj, Logger &logger,
 	            const int market_data_type = 3) : logger_(logger), client_(client), obj_(obj), hub_(hub) {
 		set_market_data_type(market_data_type);
-		data_map_ = &obj_.create<MarketDataStoreTag, std::unordered_map<int, MarketData>>();
+		data_map_ = &obj_.create<MarketDataStoreTag, std::unordered_map<int, MarketDataStore>>();
 	}
 
 	void set_market_data_type(const int market_data_type = 3) const {
@@ -44,11 +49,11 @@ public:
 		client_.reqMarketDataType(market_data_type);
 	}
 
-	int get_market_data_type() const {
+	int getMarketDataType() const {
 		return *obj_.try_get<MarketDataTypeTag, int>();
 	}
 
-	void market_data_sub(const Contract &contract, const std::string &tick_list, bool snap = false, bool reg_snap =
+	void marketDataSub(const Contract &contract, const std::string &tick_list, bool snap = false, bool reg_snap =
 		false) const {
 		client_.reqMktData(getNextId(), contract, tick_list, snap, reg_snap, TagValueListSPtr());
 	}
@@ -56,15 +61,16 @@ public:
 	[[nodiscard]] int getNextId() const { return obj_.get_increment_int<NextIdTag>(); }
 	[[nodiscard]] int getCurrentId() const { return *obj_.try_get<NextIdTag, int>(); }
 
-	[[nodiscard]] MarketData *getMarketData(const Contract &contract) {
+	[[nodiscard]] MarketData getMarketData(const Contract &contract) {
 		return getMarketData(conId_to_id_map_[contract.conId]);
 	}
-	[[nodiscard]] MarketData* getMarketData(const int req_id) const {
+	[[nodiscard]] MarketData getMarketData(const int req_id) const {
+		// For data safety it's better to get a copy
 		const auto it = data_map_->find(req_id);
 		if (it == data_map_->end())
-			return nullptr;
+			return MarketData();
 
-		return &it->second;
+		return it->second.data;
 	}
 
 
@@ -75,7 +81,7 @@ private:
 	ObjectHub &obj_;
 	BlockingHub &hub_;
 
-	std::unordered_map<int, MarketData> *data_map_;
+	std::unordered_map<int, MarketDataStore> *data_map_;
 	std::unordered_map<int, int> conId_to_id_map_;
 };
 
