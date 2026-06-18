@@ -137,7 +137,7 @@ public:
 	void registerMarketData(const Contract &contract, const std::string &tick_list, const bool snap = false,
 	                        const bool reg_snap =
 			                        false) const {
-		data_->market_data_sub(contract, tick_list, snap, reg_snap);
+		data_->marketDataSub(contract, tick_list, snap, reg_snap);
 	}
 
 protected:
