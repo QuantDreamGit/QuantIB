@@ -1,5 +1,4 @@
 #include <memory>
-
 #include "quantib/sync/ib.hpp"
 
 int main() {

@@ -5,7 +5,7 @@ void IB::accountSummarySub(
 	const std::string &groups) {
 
 	hub_->subscribe<AccountSummary>([&]() {
-		client_->reqAccountSummary(nextId_++, groups, tags);
+		client_->reqAccountSummary(getNextId(), groups, tags);
 	});
 
 	LOG_DEBUG_TAG(IB_STR, "Account Summary subscription done.");

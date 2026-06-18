@@ -265,6 +265,34 @@ public:
 		*elem = value;
 	}
 
+	template<typename Tag>
+	int get_increment_int() {
+		auto* elem = try_get<Tag, int>();
+		if (!elem) return 0;
+		return ++(*elem);      // increment first, return new value
+	}
+
+	template<typename Tag>
+	int get_decrement_int() {
+		auto* elem = try_get<Tag, int>();
+		if (!elem) return 0;
+		return --(*elem);      // decrement first, return new value
+	}
+
+	template<typename Tag>
+	int increment_get_int() {
+		auto* elem = try_get<Tag, int>();
+		if (!elem) return 0;
+		return (*elem)++;      // return old value, then increment
+	}
+
+	template<typename Tag>
+	int decrement_get_int() {
+		auto* elem = try_get<Tag, int>();
+		if (!elem) return 0;
+		return (*elem)--;      // return old value, then decrement
+	}
+
 	template<typename T>
 	bool contains() const {
 		return objects_.contains(typeid(T));

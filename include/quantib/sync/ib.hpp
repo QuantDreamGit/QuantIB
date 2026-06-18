@@ -15,6 +15,7 @@
 #include <thread>
 
 #include "quantib/core/bulletin_manager.h"
+#include "quantib/core/data_manager.h"
 #include "quantib/core/order_manager.h"
 #include "quantib/core/position_manager.h"
 
@@ -62,8 +63,9 @@ public:
 				}
 			});
 
-			nextId_ = hub_->wait_for<ConnectTag, int>([&]() {
+			int nextId_ = hub_->wait_for<ConnectTag, int>([&]() {
 			}).value_or(-1);
+			obj_->create<NextIdTag, int>(nextId_);
 
 			initializeManagers();
 
@@ -77,31 +79,37 @@ public:
 	void accountSummarySub(
 		const std::string &tags = AccountSummaryTags::all(),
 		const std::string &groups = "All");
+
 	void accountSummaryCancel() const;
+
 	[[nodiscard]] std::optional<AccountSummary> getAccountIds() const;
+
 	void accountUpdateSub() const;
+
 	void accountUpdateCancel() const;
 
 	/* Contracts */
-	[[nodiscard]] std::optional<std::vector<ContractDetails>> getContractDetails(int reqId, const Contract &contract) const;
-	[[nodiscard]] std::optional<std::vector<Contract>> getContracts(int reqId, const Contract &contract) const;
+	[[nodiscard]] std::optional<std::vector<ContractDetails> > getContractDetails(
+		int reqId, const Contract &contract) const;
+
+	[[nodiscard]] std::optional<std::vector<Contract> > getContracts(int reqId, const Contract &contract) const;
 
 	/* Orders */
-	void placeOrder(const Contract &contract, const Order &order) {
-		client_->placeOrder(nextId_++, contract, order);
-		LOG_DEBUG_TAG(IB_STR, "Placed order with id {} for contract {}.", nextId_ - 1, contract.symbol);
+	void placeOrder(const Contract &contract, const Order &order) const {
+		client_->placeOrder(getNextId(), contract, order);
+		LOG_DEBUG_TAG(IB_STR, "Placed order with id {} for contract {}.", getCurrentId() - 1, contract.symbol);
 	}
 
-	[[nodiscard]] std::optional<std::unordered_map<int, OpenOrders>*> getOpenOrders() const;
-	[[nodiscard]] std::optional<std::unordered_map<int, ClosedOrders>*> getClosedOrders() const;
+	[[nodiscard]] std::optional<std::unordered_map<int, OpenOrders> *> getOpenOrders() const;
+
+	[[nodiscard]] std::optional<std::unordered_map<int, ClosedOrders> *> getClosedOrders() const;
 
 	void PositionsSub() const {
 		client_->reqPositions();
 	}
 
-	[[nodiscard]] std::optional<std::unordered_map<int, Position>*> getPositions() const {
-
-		if (auto* positions = obj_->try_get<PositionStoreTag, std::unordered_map<int, Position>>()) {
+	[[nodiscard]] std::optional<std::unordered_map<int, Position> *> getPositions() const {
+		if (auto *positions = obj_->try_get<PositionStoreTag, std::unordered_map<int, Position> >()) {
 			return positions;
 		}
 		return std::nullopt;
@@ -112,24 +120,33 @@ public:
 		else bulletins_->stopSubscription();
 	}
 
-	[[nodiscard]] std::optional<std::vector<Bulletin>*> getBulletins() const {
-		if (auto* bulletins = obj_->try_get<BulletinStoreTag, std::vector<Bulletin>>()) {
+	[[nodiscard]] std::optional<std::vector<Bulletin> *> getBulletins() const {
+		if (auto *bulletins = obj_->try_get<BulletinStoreTag, std::vector<Bulletin> >()) {
 			return bulletins;
 		}
 		return std::nullopt;
 	}
 
-	[[nodiscard]] EClientSocket& getClient() const {
+	[[nodiscard]] EClientSocket &getClient() const {
 		return *client_;
 	}
 
-protected:
+	[[nodiscard]] int getNextId() const { return obj_->get_increment_int<NextIdTag>(); }
+	[[nodiscard]] int getCurrentId() const { return *obj_->try_get<NextIdTag, int>(); }
 
+	void registerMarketData(const Contract &contract, const std::string &tick_list, const bool snap = false,
+	                        const bool reg_snap =
+			                        false) const {
+		data_->market_data_sub(contract, tick_list, snap, reg_snap);
+	}
+
+protected:
 	void initializeManagers() {
 		// Managers
 		positions_ = std::make_unique<PositionManager>(*client_, *hub_, *obj_, *logger_);
 		orders_ = std::make_unique<OrderManager>(*client_, *hub_, *obj_, *logger_);
 		// bulletins_ = std::make_unique<BulletinManager>(*client_, *hub_, *obj_, *logger_);
+		data_ = std::make_unique<DataManager>(*client_, *hub_, *obj_, *logger_);
 	}
 
 	std::shared_ptr<Logger> logger_;
@@ -145,6 +162,6 @@ protected:
 	std::unique_ptr<OrderManager> orders_;
 	std::unique_ptr<PositionManager> positions_;
 	std::unique_ptr<NewsManager> bulletins_;
+	std::unique_ptr<DataManager> data_;
 	// std::unique_ptr<RequestId> requestId_;
-	int nextId_{};
 };

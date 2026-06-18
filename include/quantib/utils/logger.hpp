@@ -5,6 +5,8 @@
 #include <iostream>
 #include <utility>
 
+#include "config.h"
+
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include "spdlog/sinks/basic_file_sink.h"
@@ -22,6 +24,11 @@
 #define LOG_WARN_TAG(tag, msg, ...) logger_->warn("{}" msg, tag, ##__VA_ARGS__)
 #define LOG_CRITICAL_TAG(tag, msg, ...) logger_->critical("{}" msg, tag, ##__VA_ARGS__)
 #define LOG_TRACE_TAG(tag, msg, ...) logger_->trace("{}" msg, tag, ##__VA_ARGS__)
+#ifdef ENABLE_TICK_LOGGING
+#define LOG_TICK(...) LOG_TRACE_TAG(__VA_ARGS__)
+#else
+#define LOG_TICK(...) do{} while(0)
+#endif
 // Macros to locate the source of the message
 #define LOGGER "[Logger] "
 #define OBJ_HUB "[ObjectHub] "

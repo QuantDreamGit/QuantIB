@@ -78,6 +78,13 @@ public:
 	void error(int id, time_t errorTime, int errorCode, const std::string &errorString, const std::string
 	           &advancedOrderRejectJson) override;
 
+	void tickPrice(int reqId, const TickType field, double price, const TickAttrib &attrib) override;
+
+	void tickGeneric(int reqId, TickType tickType, double value) override;
+
+	void tickString(int reqId, TickType tickType, const std::string &value) override;
+
+	void tickSize(int reqId, TickType field, Decimal size) override;
 private:
 	BlockingHub &hub_;
 	ObjectHub &obj_;
