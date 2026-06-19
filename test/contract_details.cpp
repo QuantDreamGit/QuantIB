@@ -18,10 +18,11 @@ void printContractMsg(const Contract& contract) {
 	printf("\tTradingClass: %s\n", contract.tradingClass.c_str());
 }
 
-int main() {
-	// Do a subscription to account summary and account update, then cancel the subscription
+void sync_method() {
 	const auto ib = std::make_unique<IB>();
 	auto ok = ib->connect();
+
+	if (!ok) throw "Connection failed!";
 
 	// We typically want to request a contract to get all details of it.
 	// We find the complete contract starting of a sub-set of the infos.
@@ -29,12 +30,12 @@ int main() {
 	contract.symbol = "AAPL";
 	contract.secType = "STK";
 	contract.exchange = "SMART";
-	// contract.currency = "USD";
+	// contract.currency = "USD";	// -> We expect to find more than one contract!
 
 	// We can request contract details that have contract information AND other infos,
 	// Otherwise, it's possible to directly fetch contracts
 	// auto result = ib->getContractDetails(1, contract);
-	auto contracts = ib->getContracts(1, contract);
+	auto contracts = ib->getContractsSync(1, contract);
 
 	if (contracts.has_value()) {
 		std::cout << contracts.value().size() << " Contracts have been found!" << std::endl;
@@ -46,4 +47,32 @@ int main() {
 	}
 
 	std::this_thread::sleep_for(std::chrono::seconds(10));
+}
+
+void async_method() {
+	const auto ib = std::make_unique<IB>();
+	auto ok = ib->connect();
+
+	if (!ok) throw "Connection failed!";
+
+	Contract contract;
+	contract.symbol = "AAPL";
+	contract.secType = "STK";
+	contract.exchange = "SMART";
+	contract.currency = "USD";	// -> We expect to find one contract!
+
+	ib->registerContract(contract);
+
+	std::cin.get();
+
+	const auto contract_details = ib->getContractDetails(contract);
+	const auto contract_result = ib->getContract(contract);
+
+	std::cout << contract_details.has_value() << std::endl;
+	std::cout << contract_result.has_value() << std::endl;
+}
+
+int main() {
+	async_method();
+	sync_method();
 }
