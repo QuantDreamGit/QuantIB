@@ -31,6 +31,10 @@ struct ContractStoreTag : PermanentTag {
 	static constexpr std::string_view name = "ContractStoreTag";
 };
 
+struct ContractSymbolStoreTag : PermanentTag {
+	static constexpr std::string_view name = "ContractSymbolStoreTag";
+};
+
 struct MarketDataStoreTag : PermanentTag {
 	static constexpr std::string_view name = "MarketDataStoreTag";
 };
