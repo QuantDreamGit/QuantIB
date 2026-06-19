@@ -22,13 +22,13 @@ struct MarketDataStore {
 
 class DataManager {
 public:
-	DataManager(EClientSocket &client, BlockingHub &hub, ObjectHub &obj, Logger &logger,
-	            const int market_data_type = 3) : logger_(logger), client_(client), obj_(obj), hub_(hub) {
-		set_market_data_type(market_data_type);
-		data_map_ = &obj_.create<MarketDataStoreTag, std::unordered_map<int, MarketDataStore>>();
+	DataManager(EClientSocket &client, BlockingHub &hub, ObjectHub &obj, Logger &logger, const int market_data_type = 3) : logger_(logger), client_(client), obj_(obj),
+																	 hub_(hub) {
+		setMarketDataType(market_data_type);
+		data_map_ = &obj_.create<MarketDataStoreTag, std::unordered_map<int, MarketDataStore> >();
 	}
 
-	void set_market_data_type(const int market_data_type = 3) const {
+	void setMarketDataType(const int market_data_type = 3) const {
 		/* Market data types:
 		 * - 1:	Live market data is streaming data relayed back in real time. Market data subscriptions are required
 		 *		to receive live market data.
@@ -54,16 +54,15 @@ public:
 	}
 
 	void marketDataSub(const Contract &contract, const std::string &tick_list, bool snap = false, bool reg_snap =
-		false) const {
-		client_.reqMktData(getNextId(), contract, tick_list, snap, reg_snap, TagValueListSPtr());
+			                   false) {
+		conId_to_id_map_[contract.conId] = getNextId();
+		client_.reqMktData(getCurrentId(), contract, tick_list, snap, reg_snap, TagValueListSPtr());
 	}
-
-	[[nodiscard]] int getNextId() const { return obj_.get_increment_int<NextIdTag>(); }
-	[[nodiscard]] int getCurrentId() const { return *obj_.try_get<NextIdTag, int>(); }
 
 	[[nodiscard]] MarketData getMarketData(const Contract &contract) {
 		return getMarketData(conId_to_id_map_[contract.conId]);
 	}
+
 	[[nodiscard]] MarketData getMarketData(const int req_id) const {
 		// For data safety it's better to get a copy
 		const auto it = data_map_->find(req_id);
@@ -73,7 +72,12 @@ public:
 		return it->second.data;
 	}
 
+	[[nodiscard]] double getAsk(const Contract &contract);
+	[[nodiscard]] double getBid(const Contract &contract);
+	[[nodiscard]] double getLast(const Contract &contract);
 
+	[[nodiscard]] int getNextId() const { return obj_.get_increment_int<NextIdTag>(); }
+	[[nodiscard]] int getCurrentId() const { return *obj_.try_get<NextIdTag, int>(); }
 
 private:
 	Logger &logger_;
