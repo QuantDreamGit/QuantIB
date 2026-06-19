@@ -14,10 +14,14 @@
 #include <optional>
 #include <thread>
 
+#include "config.h"
 #include "quantib/core/bulletin_manager.h"
 #include "quantib/core/data_manager.h"
 #include "quantib/core/order_manager.h"
 #include "quantib/core/position_manager.h"
+#include "../risk_manager/risk_manager.h"
+#include "quantib/core/contract_manager.h"
+#include "quantib/core/strategy_manager.h"
 
 class IB {
 public:
@@ -89,14 +93,37 @@ public:
 	void accountUpdateCancel() const;
 
 	/* Contracts */
-	[[nodiscard]] std::optional<std::vector<ContractDetails> > getContractDetails(
+	[[nodiscard]] std::optional<std::vector<ContractDetails> > getContractDetailsSync(
 		int reqId, const Contract &contract) const;
 
-	[[nodiscard]] std::optional<std::vector<Contract> > getContracts(int reqId, const Contract &contract) const;
+	[[nodiscard]] std::optional<ContractDetails> getContractDetails(const Contract &contract) const;
+
+	[[nodiscard]] std::optional<ContractDetails> getContractDetails(const std::string &symbol) const;
+
+	[[nodiscard]] std::optional<std::vector<Contract> > getContractsSync(int reqId, const Contract &contract) const;
+
+	[[nodiscard]] std::optional<Contract> getContract(const Contract &contract) const;
+
+	[[nodiscard]] std::optional<Contract> getContract(const std::string &symbol) const;
+
+	void registerContract (const Contract &contract) const;
+
+	void registerInstrument(const Contract &contract) const {
+		registerContract(contract);
+		registerMarketData(contract);
+	}
 
 	/* Orders */
 	void placeOrder(const Contract &contract, const Order &order) const {
+		if (!risk_->validate(order, contract)) {
+			return;
+		}
 		client_->placeOrder(getNextId(), contract, order);
+		/*
+		[2026-06-18 18:41:47] [warning] [Wrapper] Received error with id 23: code=399, message=Order Message:
+		BUY 10 EXW1 IBIS
+		Warning: Your order will not be placed at the exchange until 2026-06-19 09:00:00 MET., advancedOrderRejectJson=, Time=1781800907000
+		*/
 		LOG_DEBUG_TAG(IB_STR, "Placed order with id {} for contract {}.", getCurrentId() - 1, contract.symbol);
 	}
 
@@ -134,7 +161,7 @@ public:
 	[[nodiscard]] int getNextId() const { return obj_->get_increment_int<NextIdTag>(); }
 	[[nodiscard]] int getCurrentId() const { return *obj_->try_get<NextIdTag, int>(); }
 
-	void registerMarketData(const Contract &contract, const std::string &tick_list, const bool snap = false,
+	void registerMarketData(const Contract &contract, const std::string &tick_list = "", const bool snap = false,
 	                        const bool reg_snap =
 			                        false) const {
 		data_->marketDataSub(contract, tick_list, snap, reg_snap);
@@ -145,8 +172,12 @@ protected:
 		// Managers
 		positions_ = std::make_unique<PositionManager>(*client_, *hub_, *obj_, *logger_);
 		orders_ = std::make_unique<OrderManager>(*client_, *hub_, *obj_, *logger_);
-		// bulletins_ = std::make_unique<BulletinManager>(*client_, *hub_, *obj_, *logger_);
 		data_ = std::make_unique<DataManager>(*client_, *hub_, *obj_, *logger_);
+		contract_ = std::make_unique<ContractManager>(*client_, *hub_, *obj_, *logger_);
+		risk_ = std::make_unique<MyRiskManager>(
+			*client_, *hub_, *obj_, *logger_, *positions_, *orders_, *data_, *contract_);
+		strategy_ = std::make_unique<StrategyManager>(*client_, *hub_, *obj_, *logger_, *risk_);
+		// bulletins_ = std::make_unique<BulletinManager>(*client_, *hub_, *obj_, *logger_);
 	}
 
 	std::shared_ptr<Logger> logger_;
@@ -159,9 +190,12 @@ protected:
 	// Mode is used to indicate whether commands should be sync or async
 	std::unique_ptr<BlockingHub> hub_;
 	std::unique_ptr<ObjectHub> obj_;
+	std::unique_ptr<MyRiskManager> risk_;
+	std::unique_ptr<StrategyManager> strategy_;
 	std::unique_ptr<OrderManager> orders_;
 	std::unique_ptr<PositionManager> positions_;
 	std::unique_ptr<NewsManager> bulletins_;
 	std::unique_ptr<DataManager> data_;
+	std::unique_ptr<ContractManager> contract_;
 	// std::unique_ptr<RequestId> requestId_;
 };
