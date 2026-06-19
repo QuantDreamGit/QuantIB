@@ -5,7 +5,9 @@
 #include <iostream>
 #include <utility>
 
-#include "config.h"
+// I can enable tick logging to see all the ticks received from IB.
+// This is useful for debugging and testing
+// #define ENABLE_TICK_LOGGING
 
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
@@ -43,6 +45,7 @@
 #define POS_MGR "[PositionManager] "
 #define ORD_MGR "[OrderManager] "
 #define BULLETIN "[Bulletin] "
+#define RISK "[Risk] "
 
 class Logger {
 	// I'd like to design it using 2 modes, silent and verbose with different degrees of freedom.

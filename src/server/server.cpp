@@ -48,7 +48,7 @@ void HttpServerIB::setupRoutes() {
 		contract.exchange = "SMART";
 		contract.currency = "USD";
 
-		auto result = ib_.getContracts(1, contract);
+		auto result = ib_.getContractsSync(1, contract);
 
 		if (!result.has_value() || result->size() != 1) {
 			res.status = 400;

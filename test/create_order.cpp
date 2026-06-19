@@ -19,7 +19,7 @@ int main() {
 	// We can request contract details that have contract information AND other infos,
 	// Otherwise, it's possible to directly fetch contracts
 	// auto result = ib->getContractDetails(1, contract);
-	auto result = ib->getContracts(1, contract);
+	auto result = ib->getContractsSync(1, contract);
 
 	if (result.has_value() && result.value().size() == 1) {
 		const auto order = OrderSamples::MarketOrder("BUY", DecimalFunctions::doubleToDecimal(1.0));
