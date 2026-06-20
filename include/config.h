@@ -4,8 +4,8 @@
 // In logger.hpp you can choose if tick data should be displayed with ENABLE_TICK_LOGGING
 
 using MyRiskManager = RiskManager<
-		ContractReady<>,					// Check if contract is ready
-		OnlyTradingHours<>,					// Check if order is within trading hours
-		MaxOrderNotional<1000, Side::Buy>,	// Max Notional for long side
-		MaxOrderNotional<1000, Side::Sell> 	// Max Notional for short side
-	>;
+	ContractReady<true, FixedRetry<10, 500>>,
+	MarketIsOpen<false>,
+	MaxOrderNotional<1000, Side::Buy>,
+	MaxOrderNotional<1000, Side::Sell>
+>;

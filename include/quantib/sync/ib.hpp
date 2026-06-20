@@ -114,17 +114,21 @@ public:
 	}
 
 	/* Orders */
-	void placeOrder(const Contract &contract, const Order &order) const {
-		if (!risk_->validate(order, contract)) {
+	void placeOrder(const Contract& contract, const Order& order) const {
+		auto future = risk_->validate(OrderIntent(contract, order));
+		const RiskResult result = future.get();
+
+		if (result.decision == RiskDecision::Reject) {
+			LOG_WARN_TAG(RISK, "Order rejected for {}. Reason: {}", contract.symbol, result.reason);
 			return;
 		}
+
+		if (result.decision == RiskDecision::Pending) {
+			LOG_WARN_TAG(RISK, "Order still pending for {}. Reason: {}", contract.symbol, result.reason);
+			return;
+		}
+
 		client_->placeOrder(getNextId(), contract, order);
-		/*
-		[2026-06-18 18:41:47] [warning] [Wrapper] Received error with id 23: code=399, message=Order Message:
-		BUY 10 EXW1 IBIS
-		Warning: Your order will not be placed at the exchange until 2026-06-19 09:00:00 MET., advancedOrderRejectJson=, Time=1781800907000
-		*/
-		LOG_DEBUG_TAG(IB_STR, "Placed order with id {} for contract {}.", getCurrentId() - 1, contract.symbol);
 	}
 
 	[[nodiscard]] std::optional<std::unordered_map<int, OpenOrders> *> getOpenOrders() const;
@@ -176,6 +180,7 @@ protected:
 		contract_ = std::make_unique<ContractManager>(*client_, *hub_, *obj_, *logger_);
 		risk_ = std::make_unique<MyRiskManager>(
 			*client_, *hub_, *obj_, *logger_, *positions_, *orders_, *data_, *contract_);
+		risk_->start();
 		strategy_ = std::make_unique<StrategyManager>(*client_, *hub_, *obj_, *logger_, *risk_);
 		// bulletins_ = std::make_unique<BulletinManager>(*client_, *hub_, *obj_, *logger_);
 	}
@@ -198,4 +203,6 @@ protected:
 	std::unique_ptr<DataManager> data_;
 	std::unique_ptr<ContractManager> contract_;
 	// std::unique_ptr<RequestId> requestId_;
+	std::thread risk_thread_;
+	std::atomic_bool riskRunning_{false};
 };

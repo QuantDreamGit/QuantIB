@@ -38,10 +38,9 @@ void contract_ready(const IB *ib, const Contract &contract) {
 	ib->placeOrder(contract, small_order);
 
 	// Wait few seconds to be sure to receive contract details
-	std::cin.get();
+	// std::cin.get();
 	// Then try again
 	ib->placeOrder(contract, small_order);
-
 }
 
 int main() {
@@ -52,10 +51,10 @@ int main() {
 	// We typically want to request a contract to get all details of it.
 	// We find the complete contract starting of a sub-set of the infos.
 	Contract contract;
-	contract.symbol = "AAPL";
+	contract.symbol = "EXW1";
 	contract.secType = "STK";
 	contract.exchange = "SMART";
-	contract.currency = "USD";
+	contract.currency = "EUR";
 
 	contract_ready(ib.get(), contract);
 	// notional_policy(ib.get(), contract);

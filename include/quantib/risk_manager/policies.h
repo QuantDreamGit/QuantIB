@@ -1,93 +1,84 @@
 #pragma once
 
 #include "Order.h"
-#include "quantib/core/contract_manager.h"
+#include "retry.h"
+#include "structs.h"
 
-#include "quantib/core/data_manager.h"
-#include "quantib/core/object_hub.hpp"
-#include "quantib/core/order_manager.h"
-#include "quantib/core/position_manager.h"
-
-enum class Side {
-	Buy,
-	Sell
-};
-
-struct RiskContext {
-	ObjectHub &obj;
-	Logger &logger_;
-	OrderManager &order;
-	DataManager &data;
-	PositionManager &position;
-	ContractManager &contract;
-
-	RiskContext(ObjectHub &hub_, Logger &logger_, OrderManager &order_, DataManager &data_, PositionManager
-		&position_, ContractManager &contract_)
-		: obj(hub_), logger_(logger_), order(order_), data(data_), position(position_), contract(contract_) {}
-};
-
-template<bool RequireContractDetails = true>
+template<bool RequireContractDetails = true,
+		 typename Retry = NoRetry>
 struct ContractReady {
-	static bool check(const Order& order,
-					  const Contract& contract,
-					  const RiskContext& ctx) {
+	static RiskResult check(const Order &order,
+	                  const Contract &contract,
+	                  const RiskContext &ctx) {
 		if constexpr (RequireContractDetails) {
-			if (const auto contract_info = ctx.contract.getContractInfo(contract.symbol);
-				contract_info.has_value() && contract_info.value().pending_details == false) return true;
-
-			ctx.LOG_WARN_TAG(RISK, "Rejected: invalid/missing contract for {}.", contract.symbol);
-			return false;
+			const auto contract_info = ctx.contract.getContractInfo(contract.symbol);
+			if (contract_info.has_value()) {
+				if (contract_info.value().pending_details == false) {
+					return RiskResult::pass();
+				}
+				// We have to wait data
+				return RiskResult::pending(
+					"Contract details pending for " + contract.symbol,
+					RiskAction::Wait,
+					Retry{});
+			}
+			// We have no data contract
+			return RiskResult::pending(
+				"Contract data missing for " + contract.symbol,
+				RiskAction::RegisterContract,
+				Retry{});
 		}
-		return true;
+		// If RequireContractDetails = false
+		return RiskResult::pass();
 	}
 };
 
-
-template <bool TradingHours = true>
-struct OnlyTradingHours {
-	static bool check(const Order& order,
-					  const Contract& contract,
-					  const RiskContext& ctx) {
+template<bool TradingHours = true>
+struct MarketIsOpen {
+	static RiskResult check(const Order &,
+	                  const Contract &contract,
+	                  const RiskContext &ctx) {
 		if constexpr (TradingHours) {
-			if (const auto contract_info = ctx.contract.getContractInfo(contract.symbol);
-				contract_info.has_value() && contract_info.value().isInLiquidHours() == true) return true;
-			ctx.LOG_WARN_TAG(RISK, "Rejected: order outside trading hours for {}.", contract.symbol);
-			return false;
+			const auto contract_info = ctx.contract.getContractInfo(contract.symbol);
+			if (contract_info.has_value()) {
+				if (contract_info.value().isInLiquidHours() == true) return RiskResult::pass();
+				return RiskResult::reject("Order outside trading hours for " + contract.symbol);
+			}
+			// We have no data contract
+			return RiskResult::pending(
+				"Contract data missing for " + contract.symbol,
+				RiskAction::RegisterContract);
 		}
-		return true;
+		return RiskResult::pass();
 	}
 };
-
 
 template<int MaxNotional, Side OrderSide>
 struct MaxOrderNotional {
-	static bool check(const Order& order,
-					  const Contract& contract,
-					  const RiskContext& ctx) {
+	static RiskResult check(const Order &order,
+	                  const Contract &contract,
+	                  const RiskContext &ctx) {
 		double price{};
 
 		if constexpr (OrderSide == Side::Buy) {
-			if (order.action != "BUY") return true;
+			if (order.action != "BUY") return RiskResult::pass();
 			price = ctx.data.getAsk(contract);
 		} else if constexpr (OrderSide == Side::Sell) {
-			if (order.action != "SELL") return true;
+			if (order.action != "SELL") return RiskResult::pass();
 			price = ctx.data.getBid(contract);
 		}
 
 		if (price <= 0.0) {
-			ctx.LOG_WARN_TAG(RISK, "Rejected: invalid/missing price for {}.", contract.symbol);
-			return false;
+			return RiskResult::pending("Market data missing for " + contract.symbol, RiskAction::RegisterMktData);
 		}
 
 		const double qty = DecimalFunctions::decimalToDouble(order.totalQuantity);
-
 		if (const double notional = price * qty; notional > MaxNotional) {
-			ctx.LOG_WARN_TAG(RISK,"Rejected: notional {} exceeds max {} for {}.",
-				notional, MaxNotional, contract.symbol);
-			return false;
+			return RiskResult::reject("Order notional " + std::to_string(notional) + " exceeds max notional of " +
+			                           std::to_string(MaxNotional));
 		}
 
-		return true;
+		return RiskResult::pass();
 	}
 };
 
