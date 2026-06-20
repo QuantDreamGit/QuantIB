@@ -53,7 +53,7 @@ public:
 		return *obj_.try_get<MarketDataTypeTag, int>();
 	}
 
-	void marketDataSub(const Contract &contract, const std::string &tick_list, bool snap = false, bool reg_snap =
+	void marketDataSub(const Contract &contract, const std::string &tick_list = "", bool snap = false, bool reg_snap =
 			                   false) {
 		conId_to_id_map_[contract.conId] = getNextId();
 		client_.reqMktData(getCurrentId(), contract, tick_list, snap, reg_snap, TagValueListSPtr());
