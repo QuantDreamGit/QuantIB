@@ -36,11 +36,6 @@ void contract_ready(const IB *ib, const Contract &contract) {
 	ib->registerInstrument(contract);
 	// Try to immediately place order (should fail if not already registered!)
 	ib->placeOrder(contract, small_order);
-
-	// Wait few seconds to be sure to receive contract details
-	// std::cin.get();
-	// Then try again
-	ib->placeOrder(contract, small_order);
 }
 
 int main() {
