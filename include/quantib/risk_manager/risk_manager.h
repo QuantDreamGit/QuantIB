@@ -104,8 +104,7 @@ private:
 				local_queue.pop_front();
 
 				try {
-					RiskResult result =
-						validateImpl<RiskPolicies...>(request.order_intent);
+					RiskResult result = validateImpl<RiskPolicies...>(request.order_intent);
 
 					request.promise.set_value(result);
 				} catch (...) {
@@ -142,8 +141,12 @@ private:
 
 			executeAction(res, contract);
 
-			if (attempt >= res.retry_policy.max_attempts ||
-				res.retry_policy.max_attempts <= 0) {
+			if (res.retry_policy.max_attempts <= 0 ||
+				attempt >= res.retry_policy.max_attempts) {
+				res.decision = RiskDecision::Reject;
+				LOG_TRACE_TAG(RISK, "Max attempts reached for policy {} on order: {}, contract: {}. Rejecting order. "
+									"Action: {}",
+					typeid(Policy).name(), order.action, contract.symbol, ACTION_STRING);
 				return res;
 				}
 
