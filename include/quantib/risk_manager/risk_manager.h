@@ -1,8 +1,5 @@
 #pragma once
 
-#include "magic_enum.hpp"
-#define ACTION_STRING magic_enum::enum_name(res.action)
-
 #include <deque>
 #include <future>
 #include <thread>
@@ -10,8 +7,11 @@
 #include <mutex>
 #include <chrono>
 
+#include "nameof.hpp"
+
 #include "Contract.h"
 #include "EClientSocket.h"
+
 #include "../core/object_hub.hpp"
 #include "quantib/network/connection.hpp"
 #include "quantib/utils/logger.hpp"
@@ -117,7 +117,7 @@ private:
 	}
 
 	template<typename Policy, typename... OtherPolicies>
-	RiskResult validateImpl(const OrderIntent& order_intent,
+	[[nodiscard]] RiskResult validateImpl(const OrderIntent& order_intent,
 							int attempt = 1) const {
 		const Order& order = order_intent.order;
 		const Contract& contract = order_intent.contract;
@@ -125,28 +125,28 @@ private:
 		RiskResult res = Policy::check(order, contract, ctx_);
 
 		if (res.decision == RiskDecision::Reject) {
-			LOG_TRACE_TAG(RISK, "Policy {} failed for order: {}, contract: {}. Action: {}",
-				typeid(Policy).name(), order.action, contract.symbol, ACTION_STRING);
+			LOG_WARN_TAG(RISK, "Policy {} failed for order: {}, contract: {}. Action: {}",
+				NAMEOF_TYPE(Policy), order.action, contract.symbol, NAMEOF_ENUM(res.action));
 			return res;
 		}
 
 		if (res.decision == RiskDecision::Pending) {
-			LOG_TRACE_TAG(RISK, "Policy {} pending for order: {}, contract: {}. Attempt {}/{}. Action: {}",
-				typeid(Policy).name(),
+			LOG_WARN_TAG(RISK, "Policy {} pending for order: {}, contract: {}. Attempt {}/{}. Action: {}",
+				NAMEOF_TYPE(Policy),
 				order.action,
 				contract.symbol,
 				attempt,
 				res.retry_policy.max_attempts,
-				ACTION_STRING);
+				NAMEOF_ENUM(res.action));
 
 			executeAction(res, contract);
 
 			if (res.retry_policy.max_attempts <= 0 ||
 				attempt >= res.retry_policy.max_attempts) {
 				res.decision = RiskDecision::Reject;
-				LOG_TRACE_TAG(RISK, "Max attempts reached for policy {} on order: {}, contract: {}. Rejecting order. "
+				LOG_WARN_TAG(RISK, "Max attempts reached for policy {} on order: {}, contract: {}. Rejecting order. "
 									"Action: {}",
-					typeid(Policy).name(), order.action, contract.symbol, ACTION_STRING);
+					NAMEOF_TYPE(Policy), order.action, contract.symbol, NAMEOF_ENUM(res.action));
 				return res;
 				}
 
@@ -162,7 +162,7 @@ private:
 			return validateImpl<OtherPolicies...>(order_intent, 1);
 		} else {
 			LOG_TRACE_TAG(RISK, "All policies passed for order: {}, contract: {}. Action: {}",
-				order.action, contract.symbol, ACTION_STRING);
+				order.action, contract.symbol, NAMEOF_ENUM(res.action));
 			return RiskResult::pass();
 		}
 	}

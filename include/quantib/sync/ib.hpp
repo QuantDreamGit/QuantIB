@@ -44,6 +44,13 @@ public:
 		isRunning_ = false;
 		if (message_thread_.joinable())
 			message_thread_.join();
+
+		if (riskRunning_) {
+			riskRunning_ = false;
+			if (risk_thread_.joinable())
+				risk_thread_.join();
+		}
+
 		if (client_ && client_->isConnected())
 			client_->eDisconnect();
 	}

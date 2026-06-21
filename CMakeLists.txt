@@ -19,7 +19,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(IBKR_DIR "${CMAKE_SOURCE_DIR}/external/IBJts")
 set(LOGGER_DIR "${CMAKE_SOURCE_DIR}/external/spdlog")
-set(MAGIC_ENUM "${CMAKE_SOURCE_DIR}/external/magic_enum")
+set(NAMEOF "${CMAKE_SOURCE_DIR}/external/nameof")
 
 add_subdirectory(
     "${IBKR_DIR}/source/cppclient/client"
@@ -50,7 +50,7 @@ target_include_directories(quantib
         "${IBKR_DIR}/source/cppclient/client"
         "${IBKR_DIR}/source/cppclient/client/protobufUnix"
         "${LOGGER_DIR}/"
-        "${MAGIC_ENUM}/"
+        "${NAMEOF}/"
 )
 
 target_link_libraries(quantib

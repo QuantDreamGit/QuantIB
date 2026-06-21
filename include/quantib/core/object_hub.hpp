@@ -8,6 +8,8 @@
 #include <utility>
 #include <vector>
 
+#include "nameof.hpp"
+
 #include "tags.hpp"
 #include "quantib/utils/logger.hpp"
 
@@ -41,7 +43,7 @@ public:
         std::unique_lock lock(mutex_);
 
         if (auto* existing = try_get_unlocked<Tag, T>()) {
-            LOG_DEBUG_TAG(OBJ_HUB, "Object already exists for tag {}.", typeid(Tag).name());
+            LOG_DEBUG_TAG(OBJ_HUB, "Object already exists for tag {}.", NAMEOF_TYPE(Tag));
             return *existing;
         }
 
@@ -49,8 +51,7 @@ public:
         T& ref = *holder->ptr;
         objects_.emplace(typeid(Tag), std::move(holder));
 
-        LOG_TRACE_TAG(OBJ_HUB, "Created object of type {} with tag {}.",
-                      typeid(T).name(), typeid(Tag).name());
+        LOG_TRACE_TAG(OBJ_HUB, "Created object with tag {}.", NAMEOF_TYPE(Tag));
 
         return ref;
     }
@@ -69,7 +70,7 @@ public:
         objects_[typeid(Tag)] = std::move(holder);
 
         LOG_TRACE_TAG(OBJ_HUB, "Inserted object of type {} with tag {}.",
-                      typeid(T).name(), typeid(Tag).name());
+                      NAMEOF_TYPE(T), NAMEOF_TYPE(Tag));
 
         return ref;
     }
@@ -86,7 +87,7 @@ public:
         if (auto* obj = try_get_unlocked<Tag, T>()) {
             *obj = std::move(value);
             LOG_TRACE_TAG(OBJ_HUB, "Updated object of type {} with tag {}.",
-                          typeid(T).name(), typeid(Tag).name());
+                          NAMEOF_TYPE(T), NAMEOF_TYPE(Tag));
             return;
         }
 
@@ -323,7 +324,7 @@ private:
 
         if (it->second->type() != typeid(T)) {
             LOG_WARN_TAG(OBJ_HUB, "Object with tag {} has wrong type. Expected {}, found {}.",
-                         typeid(Tag).name(), typeid(T).name(), it->second->type().name());
+                         NAMEOF_TYPE(Tag), NAMEOF_TYPE(T), it->second->type().name());
             return nullptr;
         }
 
@@ -338,7 +339,7 @@ private:
         objects_[typeid(Tag)] = std::move(holder);
 
         LOG_TRACE_TAG(OBJ_HUB, "Created object of type {} with tag {}.",
-                      typeid(T).name(), typeid(Tag).name());
+                      NAMEOF_TYPE(T), NAMEOF_TYPE(Tag));
 
         return ref;
     }
@@ -350,7 +351,7 @@ private:
         objects_[typeid(Tag)] = std::move(holder);
 
         LOG_TRACE_TAG(OBJ_HUB, "Inserted object of type {} with tag {}.",
-                      typeid(T).name(), typeid(Tag).name());
+                      NAMEOF_TYPE(T), NAMEOF_TYPE(Tag));
 
         return ref;
     }
