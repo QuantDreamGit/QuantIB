@@ -24,3 +24,8 @@ compile_commands.json
 
 # Cache files
 .cache/
+
+external/nameof
+external/cpp-httplib
+external/spdlog
+external/json
