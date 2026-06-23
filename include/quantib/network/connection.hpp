@@ -51,11 +51,11 @@ public:
 		auto us = std::chrono::duration_cast<std::chrono::microseconds>(Clock::now() - start).count();
 		if (us < 1000)
 			LOG_TRACE_TAG(PERFTIMER, "Tag={} latency={} us",
-		              Tag::name,
+		              NAMEOF_TYPE(Tag),
 		              us);
 		else
 			LOG_TRACE_TAG(PERFTIMER, "Tag={} latency={} ms",
-		              Tag::name,
+		              NAMEOF_TYPE(Tag),
 		              us / 1000);
 
 		return result;
