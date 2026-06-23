@@ -5,27 +5,34 @@ file(GLOB PROTO_SOURCES "protobufUnix/*.pb.cc")
 file(GLOB PROTO_HEADERS "protobufUnix/*.pb.h")
 
 set(twsapi_VERSION 9.79.02)
-set(BID_LIBRARY
-    "${CMAKE_SOURCE_DIR}/external/IntelRDFPMathLib20U4/LIBRARY/libbid.so"
+
+find_library(BID_LIBRARY
+        NAMES bid libbid
+        PATHS /usr/local/lib
+        REQUIRED
 )
 
-
-find_package(Protobuf REQUIRED)
+find_package(Protobuf REQUIRED CONFIG)
+find_package(absl REQUIRED CONFIG)
 
 add_library(twsapi SHARED
-    ${SOURCES}
-    ${PROTO_SOURCES}
+        ${SOURCES}
+        ${PROTO_SOURCES}
 )
 
 target_include_directories(twsapi
-    PUBLIC
+        PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}
         ${CMAKE_CURRENT_SOURCE_DIR}/protobufUnix
 )
 
 target_link_libraries(twsapi
-    PUBLIC
+        PUBLIC
         protobuf::libprotobuf
+        absl::log
+        absl::check
+        absl::hash
+        absl::strings
         ${BID_LIBRARY}
 )
 
@@ -40,16 +47,16 @@ else()
 endif()
 
 set_target_properties(twsapi
-    PROPERTIES
-    PREFIX "lib"
-    DEBUG_POSTFIX "d"
-    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
-    PUBLIC_HEADER "${HEADERS};${PROTO_HEADERS}"
+        PROPERTIES
+        PREFIX "lib"
+        DEBUG_POSTFIX "d"
+        LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+        PUBLIC_HEADER "${HEADERS};${PROTO_HEADERS}"
 )
 
 install(
-    TARGETS twsapi
-    EXPORT twsapi-targets
-    PUBLIC_HEADER DESTINATION include/twsapi
-    LIBRARY DESTINATION lib
+        TARGETS twsapi
+        EXPORT twsapi-targets
+        PUBLIC_HEADER DESTINATION include/twsapi
+        LIBRARY DESTINATION lib
 )

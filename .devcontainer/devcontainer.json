@@ -8,9 +8,12 @@
   "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind",
   "runArgs": [
     "--platform=linux/amd64",
+    "--cpus=8",
+    "--memory=16g",
     "--cap-add=SYS_PTRACE",
     "--security-opt=seccomp=unconfined"
   ],
+  "postCreateCommand": "bash .devcontainer/post-create.sh",
   "customizations": {
     "jetbrains": {
       "backend": "CLion"
