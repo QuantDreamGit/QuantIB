@@ -5,7 +5,8 @@
 
 using MyRiskManager = RiskManager<
 	ContractReady<true, FixedRetry<10, 500>>,
-	MarketIsOpen<false>,
+	MktDataReady<true, FixedRetry<10, 500>>,
+	MarketIsOpen<true>,
 	MaxOrderNotional<1000, Side::Buy>,
 	MaxOrderNotional<1000, Side::Sell>
 >;
