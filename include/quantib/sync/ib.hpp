@@ -74,7 +74,7 @@ public:
 				}
 			});
 
-			int nextId_ = hub_->wait_for<ConnectTag, int>([&]() {
+			auto nextId_ = hub_->wait_for<ConnectTag, int>([&]() {
 			}).value_or(-1);
 			obj_->create<NextIdTag, int>(nextId_);
 
