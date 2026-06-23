@@ -7,7 +7,7 @@
 template<bool RequireContractDetails = true,
 		 typename Retry = NoRetry>
 struct ContractReady {
-	static RiskResult check(const Order &order,
+	static RiskResult check(const Order &,
 	                  const Contract &contract,
 	                  const RiskContext &ctx) {
 		if constexpr (RequireContractDetails) {
@@ -29,6 +29,36 @@ struct ContractReady {
 				Retry{});
 		}
 		// If RequireContractDetails = false
+		return RiskResult::pass();
+	}
+};
+
+template<bool RequireMktDetails = true,
+		 typename Retry = NoRetry>
+struct MktDataReady {
+	static RiskResult check(const Order &,
+					  const Contract &contract,
+					  const RiskContext &ctx) {
+		if constexpr (RequireMktDetails) {
+			// If not subscribed
+			if (const bool has_sub = ctx.data.hasSubscribed(contract); !has_sub) {
+				return RiskResult::pending(
+			"Contract " + contract.symbol + "has not subscribed for market data. Trying to subscribe...",
+				RiskAction::RegisterMktData,
+				Retry{});
+			}
+			// If it has already prices
+			if (const auto price_info = ctx.data.getPrice(contract); price_info.has_value()) {
+				return RiskResult::pass();
+			}
+
+			// Otherwise
+			return RiskResult::pending(
+				"Waiting missing prices for " + contract.symbol,
+				RiskAction::Wait,
+				Retry{});
+		}
+
 		return RiskResult::pass();
 	}
 };
