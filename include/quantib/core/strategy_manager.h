@@ -10,6 +10,7 @@
 #include "Order.h"
 #include "OrderState.h"
 #include "Execution.h"
+#include "config.h"
 
 class StrategyManager {
 public:

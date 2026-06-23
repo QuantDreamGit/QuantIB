@@ -4,6 +4,17 @@
 #include "retry.h"
 #include "structs.h"
 
+// TODO: Add policies
+/*
+ * SpreadWithinLimit
+ * PriceNotStale
+ * MaxPosition
+ * CashAvailable / BuyingPowerAvailable
+ * TradingEnabled
+ * MaxOrdersPerMinute
+ * LimitPriceReasonable
+*/
+
 template<bool RequireContractDetails = true,
 		 typename Retry = NoRetry>
 struct ContractReady {
