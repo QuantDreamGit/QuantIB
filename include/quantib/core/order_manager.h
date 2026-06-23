@@ -10,6 +10,7 @@
 #include "Order.h"
 #include "OrderState.h"
 #include "Execution.h"
+#include "quantib/order/order_factory.h"
 
 struct OrderDetails {
 	OrderDetails() = default;
@@ -68,9 +69,9 @@ struct ClosedOrders {
 
 class OrderManager {
 public:
-	OrderManager(EClientSocket &client, BlockingHub &hub, ObjectHub &obj, Logger &logger) : logger_(logger),
+	OrderManager(EClientSocket &client, BlockingHub &hub, ObjectHub &obj, Logger &logger, OrderFactory &factory) : logger_(logger),
 																							   client_(client),
-																							   obj_(obj), hub_(hub) {
+																							   obj_(obj), hub_(hub), factory_(factory) {
 		// Create both objects and then store them
 		openOrders_ = &obj_.create<OpenOrderStoreTag, std::unordered_map<int, OpenOrders> >();
 		closedOrders_ = &obj_.create<ClosedOrderStoreTag, std::unordered_map<int, ClosedOrders> >();
@@ -81,6 +82,7 @@ private:
 	EClientSocket &client_;
 	ObjectHub &obj_;
 	BlockingHub &hub_;
+	OrderFactory &factory_;
 
 	std::unordered_map<int, OpenOrders> *openOrders_;
 	std::unordered_map<int, ClosedOrders> *closedOrders_;

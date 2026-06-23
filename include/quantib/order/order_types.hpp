@@ -7,6 +7,11 @@
 #include "OrderCondition.h"
 #include "PriceCondition.h"
 
+enum class OrderType {
+	Market,
+	Limit
+};
+
 class OrderSamples {
 public:
 	static Order MarketOrder(std::string action, Decimal quantity);
