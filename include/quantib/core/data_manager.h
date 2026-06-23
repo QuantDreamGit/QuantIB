@@ -13,6 +13,41 @@ struct MarketData {
 	std::unordered_map<TickType, double> price_map;
 	std::unordered_map<TickType, Decimal> size_map;
 	std::unordered_map<TickType, std::string> string_map;
+
+	bool has_price() const {
+		if (const auto price = getPrice(); price.has_value()) return true;
+		return false;
+	}
+
+	std::optional<double> getPrice() const {
+		if (price_map.empty()) return std::nullopt;
+
+		// Priority: real-time trade, then quote, then delayed trade/quote, then mark/close/open.
+		static constexpr TickType kPriority[] = {
+			TickType::LAST,
+			TickType::BID,
+			TickType::ASK,
+
+			TickType::DELAYED_LAST,
+			TickType::DELAYED_BID,
+			TickType::DELAYED_ASK,
+
+			TickType::MARK_PRICE,
+			TickType::CLOSE,
+			TickType::DELAYED_CLOSE,
+			TickType::OPEN,
+			TickType::DELAYED_OPEN
+		};
+
+		for (TickType t : kPriority) {
+			auto it = price_map.find(t);
+			if (it != price_map.end()) {
+				return it->second;
+			}
+		}
+
+		return -1.0;
+	}
 };
 
 struct MarketDataStore {
@@ -57,6 +92,7 @@ public:
 			                   false) {
 		conId_to_id_map_[contract.conId] = getNextId();
 		client_.reqMktData(getCurrentId(), contract, tick_list, snap, reg_snap, TagValueListSPtr());
+		subscribed_conId_.insert(getCurrentId());
 	}
 
 	[[nodiscard]] MarketData getMarketData(const Contract &contract) {
@@ -67,14 +103,29 @@ public:
 		// For data safety it's better to get a copy
 		const auto it = data_map_->find(req_id);
 		if (it == data_map_->end())
-			return MarketData();
+			return {};
 
 		return it->second.data;
+	}
+
+	[[nodiscard]] bool hasPrice(const Contract &contract) {
+		if (const MarketData res = getMarketData(contract); res.has_price()) return true;
+		return false;
+	}
+
+	[[nodiscard]] std::optional<double> getPrice(const Contract &contract) {
+		const MarketData res = getMarketData(contract);
+		return res.getPrice();
 	}
 
 	[[nodiscard]] double getAsk(const Contract &contract);
 	[[nodiscard]] double getBid(const Contract &contract);
 	[[nodiscard]] double getLast(const Contract &contract);
+
+	[[nodiscard]] bool hasSubscribed(const Contract &contract) {
+		if (subscribed_conId_.contains(conId_to_id_map_[contract.conId])) return true;
+		return false;
+	}
 
 	[[nodiscard]] int getNextId() const { return obj_.get_increment_int<NextIdTag>(); }
 	[[nodiscard]] int getCurrentId() const { return *obj_.try_get<NextIdTag, int>(); }
@@ -87,5 +138,6 @@ private:
 
 	std::unordered_map<int, MarketDataStore> *data_map_;
 	std::unordered_map<int, int> conId_to_id_map_;
+	std::unordered_set<int> subscribed_conId_;
 };
 
