@@ -33,7 +33,8 @@ void contract_ready(const IB *ib, const Contract &contract) {
 	// If you want to test missing contract policy  using async method
 	const auto small_order = OrderSamples::MarketOrder("BUY", DecimalFunctions::doubleToDecimal(1));
 
-	ib->registerInstrument(contract);
+	// If risk manager detects a contract not subscribed it does using executeAction()
+	// ib->registerInstrument(contract);
 	// Try to immediately place order (should fail if not already registered!)
 	ib->placeOrder(contract, small_order);
 }
@@ -53,4 +54,5 @@ int main() {
 
 	contract_ready(ib.get(), contract);
 	// notional_policy(ib.get(), contract);
+
 }
