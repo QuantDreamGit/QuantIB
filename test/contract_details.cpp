@@ -59,7 +59,7 @@ void async_method() {
 	contract.symbol = "AAPL";
 	contract.secType = "STK";
 	contract.exchange = "SMART";
-	contract.currency = "USD";	// -> We expect to find one contract!
+	contract.currency = "USD"; // -> We expect to find one contract!
 
 	ib->registerContract(contract);
 

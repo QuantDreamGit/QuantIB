@@ -17,11 +17,9 @@ int main() {
 
 	auto bulletins = ib->getBulletins();
 	if (bulletins.has_value()) {
-		for (const auto &bulletin: *bulletins.value()) {
-			std::cout << "Bulletin id: " << bulletin.msg_id
-			          << ", type: " << bulletin.msg_type
-			          << ", message: " << bulletin.message
-			          << ", exchange: " << bulletin.orig_exchange << std::endl;
+		for (const auto& bulletin : *bulletins.value()) {
+			std::cout << "Bulletin id: " << bulletin.msg_id << ", type: " << bulletin.msg_type << ", message: " <<
+				bulletin.message << ", exchange: " << bulletin.orig_exchange << std::endl;
 		}
 	}
 }

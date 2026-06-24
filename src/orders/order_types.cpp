@@ -18,7 +18,7 @@
     /// lower/higher than the current displayed bid/ask.
     /// Products: BOND, CFD, EFP, CASH, FUND, FUT, FOP, OPT, STK, WAR
     /// </summary>
-Order OrderSamples::MarketOrder(std::string action, Decimal quantity){
+Order OrderSamples::MarketOrder(std::string action, Decimal quantity) {
 	//! [market]
 	Order order;
 	order.action = action;
@@ -29,16 +29,16 @@ Order OrderSamples::MarketOrder(std::string action, Decimal quantity){
 	return order;
 }
 
-	/// <summary>
-    /// A Market if Touched (MIT) is an order to buy (or sell) a contract below (or above) the market. Its purpose is to take advantage
-    /// of sudden or unexpected changes in share or other prices and provides investors with a trigger price to set an order in motion.
-    /// Investors may be waiting for excessive strength (or weakness) to cease, which might be represented by a specific price point.
-    /// MIT orders can be used to determine whether or not to enter the market once a specific price level has been achieved. This order
-    /// is held in the system until the trigger price is touched, and is then submitted as a market order. An MIT order is similar to a
-    /// stop order, except that an MIT sell order is placed above the current market price, and a stop sell order is placed below
-    /// Products: BOND, CFD, CASH, FUT, FOP, OPT, STK, WAR
-    /// </summary>
-Order OrderSamples::MarketIfTouched(std::string action, Decimal quantity, double price){
+/// <summary>
+/// A Market if Touched (MIT) is an order to buy (or sell) a contract below (or above) the market. Its purpose is to take advantage
+/// of sudden or unexpected changes in share or other prices and provides investors with a trigger price to set an order in motion.
+/// Investors may be waiting for excessive strength (or weakness) to cease, which might be represented by a specific price point.
+/// MIT orders can be used to determine whether or not to enter the market once a specific price level has been achieved. This order
+/// is held in the system until the trigger price is touched, and is then submitted as a market order. An MIT order is similar to a
+/// stop order, except that an MIT sell order is placed above the current market price, and a stop sell order is placed below
+/// Products: BOND, CFD, CASH, FUT, FOP, OPT, STK, WAR
+/// </summary>
+Order OrderSamples::MarketIfTouched(std::string action, Decimal quantity, double price) {
 	//! [market_if_touched]
 	Order order;
 	order.action = action;
@@ -49,11 +49,11 @@ Order OrderSamples::MarketIfTouched(std::string action, Decimal quantity, double
 	return order;
 }
 
-	/// <summary>
-    /// A Market-on-Close (MOC) order is a market order that is submitted to execute as close to the closing price as possible.
-    /// Products: CFD, FUT, STK, WAR
-    /// </summary>
-Order OrderSamples::MarketOnClose(std::string action, Decimal quantity){
+/// <summary>
+/// A Market-on-Close (MOC) order is a market order that is submitted to execute as close to the closing price as possible.
+/// Products: CFD, FUT, STK, WAR
+/// </summary>
+Order OrderSamples::MarketOnClose(std::string action, Decimal quantity) {
 	//! [market_on_close]
 	Order order;
 	order.action = action;
@@ -63,12 +63,12 @@ Order OrderSamples::MarketOnClose(std::string action, Decimal quantity){
 	return order;
 }
 
-	/// <summary>
-    /// A Market-on-Open (MOO) order combines a market order with the OPG time in force to create an order that is automatically
-    /// submitted at the market's open and fills at the market price.
-    /// Products: CFD, STK, OPT, WAR
-    /// </summary>
-Order OrderSamples::MarketOnOpen(std::string action, Decimal quantity){
+/// <summary>
+/// A Market-on-Open (MOO) order combines a market order with the OPG time in force to create an order that is automatically
+/// submitted at the market's open and fills at the market price.
+/// Products: CFD, STK, OPT, WAR
+/// </summary>
+Order OrderSamples::MarketOnOpen(std::string action, Decimal quantity) {
 	//! [market_on_open]
 	Order order;
 	order.action = action;
@@ -79,13 +79,13 @@ Order OrderSamples::MarketOnOpen(std::string action, Decimal quantity){
 	return order;
 }
 
-	/// <summary>
-    /// ISE Midpoint Match (MPM) orders always execute at the midpoint of the NBBO. You can submit market and limit orders direct-routed
-    /// to ISE for MPM execution. Market orders execute at the midpoint whenever an eligible contra-order is available. Limit orders
-    /// execute only when the midpoint price is better than the limit price. Standard MPM orders are completely anonymous.
-    /// Products: STK
-    /// </summary>
-Order OrderSamples::MidpointMatch(std::string action, Decimal quantity){
+/// <summary>
+/// ISE Midpoint Match (MPM) orders always execute at the midpoint of the NBBO. You can submit market and limit orders direct-routed
+/// to ISE for MPM execution. Market orders execute at the midpoint whenever an eligible contra-order is available. Limit orders
+/// execute only when the midpoint price is better than the limit price. Standard MPM orders are completely anonymous.
+/// Products: STK
+/// </summary>
+Order OrderSamples::MidpointMatch(std::string action, Decimal quantity) {
 	//! [midpoint_match]
 	Order order;
 	order.action = action;
@@ -95,12 +95,12 @@ Order OrderSamples::MidpointMatch(std::string action, Decimal quantity){
 	return order;
 }
 
-	/// <summary>
-	// A Midprice order is designed to split the difference between the bid and ask prices, and fill at the current midpoint of
-	// the NBBO or better. Set an optional price cap to define the highest price (for a buy order) or the lowest price (for a sell
-	// order) you are willing to accept. Requires TWS 975+. Smart-routing to US stocks only.
-    /// </summary>
-Order OrderSamples::Midprice(const std::string &action, Decimal quantity, double priceCap){
+/// <summary>
+// A Midprice order is designed to split the difference between the bid and ask prices, and fill at the current midpoint of
+// the NBBO or better. Set an optional price cap to define the highest price (for a buy order) or the lowest price (for a sell
+// order) you are willing to accept. Requires TWS 975+. Smart-routing to US stocks only.
+/// </summary>
+Order OrderSamples::Midprice(const std::string& action, Decimal quantity, double priceCap) {
 	//! [midprice]
 	Order order;
 	order.action = action;
@@ -111,16 +111,16 @@ Order OrderSamples::Midprice(const std::string &action, Decimal quantity, double
 	return order;
 }
 
-	/// <summary>
-    /// A pegged-to-market order is designed to maintain a purchase price relative to the national best offer (NBO) or a sale price
-    /// relative to the national best bid (NBB). Depending on the width of the quote, this order may be passive or aggressive.
-    /// The trader creates the order by entering a limit price which defines the worst limit price that they are willing to accept.
-    /// Next, the trader enters an offset amount which computes the active limit price as follows:
-    ///     Sell order price = Bid price + offset amount
-    ///     Buy order price = Ask price - offset amount
-    /// Products: STK
-    /// </summary>
-Order OrderSamples::PeggedToMarket(std::string action, Decimal quantity, double marketOffset){
+/// <summary>
+/// A pegged-to-market order is designed to maintain a purchase price relative to the national best offer (NBO) or a sale price
+/// relative to the national best bid (NBB). Depending on the width of the quote, this order may be passive or aggressive.
+/// The trader creates the order by entering a limit price which defines the worst limit price that they are willing to accept.
+/// Next, the trader enters an offset amount which computes the active limit price as follows:
+///     Sell order price = Bid price + offset amount
+///     Buy order price = Ask price - offset amount
+/// Products: STK
+/// </summary>
+Order OrderSamples::PeggedToMarket(std::string action, Decimal quantity, double marketOffset) {
 	//! [pegged_market]
 	Order order;
 	order.action = action;
@@ -132,12 +132,12 @@ Order OrderSamples::PeggedToMarket(std::string action, Decimal quantity, double 
 }
 
 
-	/// <summary>
-    /// A Limit order is an order to buy or sell at a specified price or better. The Limit order ensures that if the order fills,
-    /// it will not fill at a price less favorable than your limit price, but it does not guarantee a fill.
-    /// Products: BOND, CFD, CASH, FUT, FOP, OPT, STK, WAR
-    /// </summary>
-Order OrderSamples::LimitOrder(std::string action, Decimal quantity, double limitPrice){
+/// <summary>
+/// A Limit order is an order to buy or sell at a specified price or better. The Limit order ensures that if the order fills,
+/// it will not fill at a price less favorable than your limit price, but it does not guarantee a fill.
+/// Products: BOND, CFD, CASH, FUT, FOP, OPT, STK, WAR
+/// </summary>
+Order OrderSamples::LimitOrder(std::string action, Decimal quantity, double limitPrice) {
 	// ! [limitorder]
 	Order order;
 	order.action = action;
@@ -149,13 +149,13 @@ Order OrderSamples::LimitOrder(std::string action, Decimal quantity, double limi
 	return order;
 }
 
-	/// <summary>
-	/// Forex orders can be placed in denomination of second currency in pair using cashQty field
-	/// Requires TWS or IBG 963+
-	/// https://www.interactivebrokers.com/en/index.php?f=23876#963-02
-	/// </summary>
+/// <summary>
+/// Forex orders can be placed in denomination of second currency in pair using cashQty field
+/// Requires TWS or IBG 963+
+/// https://www.interactivebrokers.com/en/index.php?f=23876#963-02
+/// </summary>
 
-Order OrderSamples::LimitOrderWithCashQty(std::string action, double limitPrice, double cashQty){
+Order OrderSamples::LimitOrderWithCashQty(std::string action, double limitPrice, double cashQty) {
 	// ! [limitorderwithcashqty]
 	Order order;
 	order.action = action;
@@ -166,13 +166,13 @@ Order OrderSamples::LimitOrderWithCashQty(std::string action, double limitPrice,
 	return order;
 }
 
-	/// <summary>
-    /// A Limit if Touched is an order to buy (or sell) a contract at a specified price or better, below (or above) the market. This order is
-    /// held in the system until the trigger price is touched. An LIT order is similar to a stop limit order, except that an LIT sell order is
-    /// placed above the current market price, and a stop limit sell order is placed below.
-    /// Products: BOND, CFD, CASH, FUT, FOP, OPT, STK, WAR
-    /// </summary>
-Order OrderSamples::LimitIfTouched(std::string action, Decimal quantity, double limitPrice, double triggerPrice){
+/// <summary>
+/// A Limit if Touched is an order to buy (or sell) a contract at a specified price or better, below (or above) the market. This order is
+/// held in the system until the trigger price is touched. An LIT order is similar to a stop limit order, except that an LIT sell order is
+/// placed above the current market price, and a stop limit sell order is placed below.
+/// Products: BOND, CFD, CASH, FUT, FOP, OPT, STK, WAR
+/// </summary>
+Order OrderSamples::LimitIfTouched(std::string action, Decimal quantity, double limitPrice, double triggerPrice) {
 	// ! [limitiftouched]
 	Order order;
 	order.action = action;
@@ -184,12 +184,12 @@ Order OrderSamples::LimitIfTouched(std::string action, Decimal quantity, double 
 	return order;
 }
 
-	/// <summary>
-    /// A Limit-on-close (LOC) order will be submitted at the close and will execute if the closing price is at or better than the submitted
-    /// limit price.
-    /// Products: CFD, FUT, STK, WAR
-    /// </summary>
-Order OrderSamples::LimitOnClose(std::string action, Decimal quantity, double limitPrice){
+/// <summary>
+/// A Limit-on-close (LOC) order will be submitted at the close and will execute if the closing price is at or better than the submitted
+/// limit price.
+/// Products: CFD, FUT, STK, WAR
+/// </summary>
+Order OrderSamples::LimitOnClose(std::string action, Decimal quantity, double limitPrice) {
 	// ! [limitonclose]
 	Order order;
 	order.action = action;
@@ -200,12 +200,12 @@ Order OrderSamples::LimitOnClose(std::string action, Decimal quantity, double li
 	return order;
 }
 
-	/// <summary>
-    /// A Limit-on-Open (LOO) order combines a limit order with the OPG time in force to create an order that is submitted at the market's open,
-    /// and that will only execute at the specified limit price or better. Orders are filled in accordance with specific exchange rules.
-    /// Products: CFD, STK, OPT, WAR
-    /// </summary>
-Order OrderSamples::LimitOnOpen(std::string action, Decimal quantity, double limitPrice){
+/// <summary>
+/// A Limit-on-Open (LOO) order combines a limit order with the OPG time in force to create an order that is submitted at the market's open,
+/// and that will only execute at the specified limit price or better. Orders are filled in accordance with specific exchange rules.
+/// Products: CFD, STK, OPT, WAR
+/// </summary>
+Order OrderSamples::LimitOnOpen(std::string action, Decimal quantity, double limitPrice) {
 	// ! [limitonopen]
 	Order order;
 	order.action = action;
@@ -217,14 +217,16 @@ Order OrderSamples::LimitOnOpen(std::string action, Decimal quantity, double lim
 	return order;
 }
 
-	/// <summary>
-    /// Bracket orders are designed to help limit your loss and lock in a profit by "bracketing" an order with two opposite-side orders.
-    /// A BUY order is bracketed by a high-side sell limit order and a low-side sell stop order. A SELL order is bracketed by a high-side buy
-    /// stop order and a low side buy limit order.
-    /// Products: CFD, BAG, FOP, CASH, FUT, OPT, STK, WAR
-    /// </summary>
-	//! [bracket]
-void OrderSamples::BracketOrder(int parentOrderId, Order& parent, Order& takeProfit, Order& stopLoss, std::string action, Decimal quantity, double limitPrice, double takeProfitLimitPrice, double stopLossPrice){
+/// <summary>
+/// Bracket orders are designed to help limit your loss and lock in a profit by "bracketing" an order with two opposite-side orders.
+/// A BUY order is bracketed by a high-side sell limit order and a low-side sell stop order. A SELL order is bracketed by a high-side buy
+/// stop order and a low side buy limit order.
+/// Products: CFD, BAG, FOP, CASH, FUT, OPT, STK, WAR
+/// </summary>
+//! [bracket]
+void OrderSamples::BracketOrder(int parentOrderId, Order& parent, Order& takeProfit, Order& stopLoss,
+                                std::string action, Decimal quantity, double limitPrice, double takeProfitLimitPrice,
+                                double stopLossPrice) {
 	//This will be our main or "parent" order
 	parent.orderId = parentOrderId;
 	parent.action = action;
@@ -232,7 +234,7 @@ void OrderSamples::BracketOrder(int parentOrderId, Order& parent, Order& takePro
 	parent.totalQuantity = quantity;
 	parent.lmtPrice = limitPrice;
 	//The parent and children orders will need this attribute set to false to prevent accidental executions.
-    //The LAST CHILD will have it set to true,
+	//The LAST CHILD will have it set to true,
 	parent.transmit = false;
 
 	takeProfit.orderId = parent.orderId + 1;
@@ -251,18 +253,19 @@ void OrderSamples::BracketOrder(int parentOrderId, Order& parent, Order& takePro
 	stopLoss.totalQuantity = quantity;
 	stopLoss.parentId = parentOrderId;
 	//In this case, the low side order will be the last child being sent. Therefore, it needs to set this attribute to true
-    //to activate all its predecessors
+	//to activate all its predecessors
 	stopLoss.transmit = true;
 }
-	//! [bracket]
 
-	/// <summary>
-    /// Products:CFD, FUT, FOP, OPT, STK, WAR
-    /// A Market-to-Limit (MTL) order is submitted as a market order to execute at the current best market price. If the order is only
-    /// partially filled, the remainder of the order is canceled and re-submitted as a limit order with the limit price equal to the price
-    /// at which the filled portion of the order executed.
-    /// </summary>
-Order OrderSamples::MarketToLimit(std::string action, Decimal quantity){
+//! [bracket]
+
+/// <summary>
+/// Products:CFD, FUT, FOP, OPT, STK, WAR
+/// A Market-to-Limit (MTL) order is submitted as a market order to execute at the current best market price. If the order is only
+/// partially filled, the remainder of the order is canceled and re-submitted as a limit order with the limit price equal to the price
+/// at which the filled portion of the order executed.
+/// </summary>
+Order OrderSamples::MarketToLimit(std::string action, Decimal quantity) {
 	// ! [markettolimit]
 	Order order;
 	order.action = action;
@@ -272,13 +275,13 @@ Order OrderSamples::MarketToLimit(std::string action, Decimal quantity){
 	return order;
 }
 
-	/// <summary>
-    /// A Market with Protection order is a market order that will be cancelled and
-    /// resubmitted as a limit order if the entire order does not immediately execute at the market price. The limit price set to be
-    /// close to the current market price, slightly higher for a sell order and lower for a buy order.
-    /// Products: FUT, FOP
-    /// </summary>
-Order OrderSamples::MarketWithProtection(std::string action, Decimal quantity){
+/// <summary>
+/// A Market with Protection order is a market order that will be cancelled and
+/// resubmitted as a limit order if the entire order does not immediately execute at the market price. The limit price set to be
+/// close to the current market price, slightly higher for a sell order and lower for a buy order.
+/// Products: FUT, FOP
+/// </summary>
+Order OrderSamples::MarketWithProtection(std::string action, Decimal quantity) {
 	// ! [marketwithprotection]
 	Order order;
 	order.action = action;
@@ -288,15 +291,15 @@ Order OrderSamples::MarketWithProtection(std::string action, Decimal quantity){
 	return order;
 }
 
-	/// <summary>
-    /// A Stop order is an instruction to submit a buy or sell market order if and when the user-specified stop trigger price is attained or
-    /// penetrated. A Stop order is not guaranteed a specific execution price and may execute significantly away from its stop price. A Sell
-    /// Stop order is always placed below the current market price and is typically used to limit a loss or protect a profit on a long stock
-    /// position. A Buy Stop order is always placed above the current market price. It is typically used to limit a loss or help protect a
-    /// profit on a short sale.
-    /// Products: CFD, BAG, CASH, FUT, FOP, OPT, STK, WAR
-    /// </summary>
-Order OrderSamples::Stop(std::string action, Decimal quantity, double stopPrice){
+/// <summary>
+/// A Stop order is an instruction to submit a buy or sell market order if and when the user-specified stop trigger price is attained or
+/// penetrated. A Stop order is not guaranteed a specific execution price and may execute significantly away from its stop price. A Sell
+/// Stop order is always placed below the current market price and is typically used to limit a loss or protect a profit on a long stock
+/// position. A Buy Stop order is always placed above the current market price. It is typically used to limit a loss or help protect a
+/// profit on a short sale.
+/// Products: CFD, BAG, CASH, FUT, FOP, OPT, STK, WAR
+/// </summary>
+Order OrderSamples::Stop(std::string action, Decimal quantity, double stopPrice) {
 	// ! [stop]
 	Order order;
 	order.action = action;
@@ -307,13 +310,13 @@ Order OrderSamples::Stop(std::string action, Decimal quantity, double stopPrice)
 	return order;
 }
 
-	/// <summary>
-    /// A Stop-Limit order is an instruction to submit a buy or sell limit order when the user-specified stop trigger price is attained or
-    /// penetrated. The order has two basic components: the stop price and the limit price. When a trade has occurred at or through the stop
-    /// price, the order becomes executable and enters the market as a limit order, which is an order to buy or sell at a specified price or better.
-    /// Products: CFD, CASH, FUT, FOP, OPT, STK, WAR
-    /// </summary>
-Order OrderSamples::StopLimit(std::string action, Decimal quantity, double limitPrice, double stopPrice){
+/// <summary>
+/// A Stop-Limit order is an instruction to submit a buy or sell limit order when the user-specified stop trigger price is attained or
+/// penetrated. The order has two basic components: the stop price and the limit price. When a trade has occurred at or through the stop
+/// price, the order becomes executable and enters the market as a limit order, which is an order to buy or sell at a specified price or better.
+/// Products: CFD, CASH, FUT, FOP, OPT, STK, WAR
+/// </summary>
+Order OrderSamples::StopLimit(std::string action, Decimal quantity, double limitPrice, double stopPrice) {
 	// ! [stoplimit]
 	Order order;
 	order.action = action;
@@ -325,15 +328,15 @@ Order OrderSamples::StopLimit(std::string action, Decimal quantity, double limit
 	return order;
 }
 
-	/// <summary>
-    /// A Stop with Protection order combines the functionality of a stop limit order with a market with protection order. The order is set
-    /// to trigger at a specified stop price. When the stop price is penetrated, the order is triggered as a market with protection order,
-    /// which means that it will fill within a specified protected price range equal to the trigger price +/- the exchange-defined protection
-    /// point range. Any portion of the order that does not fill within this protected range is submitted as a limit order at the exchange-defined
-    /// trigger price +/- the protection points.
-    /// Products: FUT
-    /// </summary>
-Order OrderSamples::StopWithProtection(std::string action, Decimal quantity, double stopPrice){
+/// <summary>
+/// A Stop with Protection order combines the functionality of a stop limit order with a market with protection order. The order is set
+/// to trigger at a specified stop price. When the stop price is penetrated, the order is triggered as a market with protection order,
+/// which means that it will fill within a specified protected price range equal to the trigger price +/- the exchange-defined protection
+/// point range. Any portion of the order that does not fill within this protected range is submitted as a limit order at the exchange-defined
+/// trigger price +/- the protection points.
+/// Products: FUT
+/// </summary>
+Order OrderSamples::StopWithProtection(std::string action, Decimal quantity, double stopPrice) {
 	// ! [stopwithprotection]
 	Order order;
 	order.action = action;
@@ -344,15 +347,15 @@ Order OrderSamples::StopWithProtection(std::string action, Decimal quantity, dou
 	return order;
 }
 
-	/// <summary>
-    /// A sell trailing stop order sets the stop price at a fixed amount below the market price with an attached "trailing" amount. As the
-    /// market price rises, the stop price rises by the trail amount, but if the stock price falls, the stop loss price doesn't change,
-    /// and a market order is submitted when the stop price is hit. This technique is designed to allow an investor to specify a limit on the
-    /// maximum possible loss, without setting a limit on the maximum possible gain. "Buy" trailing stop orders are the mirror image of sell
-    /// trailing stop orders, and are most appropriate for use in falling markets.
-    /// Products: CFD, CASH, FOP, FUT, OPT, STK, WAR
-    /// </summary>
-Order OrderSamples::TrailingStop(std::string action, Decimal quantity, double trailingPercent, double trailStopPrice){
+/// <summary>
+/// A sell trailing stop order sets the stop price at a fixed amount below the market price with an attached "trailing" amount. As the
+/// market price rises, the stop price rises by the trail amount, but if the stock price falls, the stop loss price doesn't change,
+/// and a market order is submitted when the stop price is hit. This technique is designed to allow an investor to specify a limit on the
+/// maximum possible loss, without setting a limit on the maximum possible gain. "Buy" trailing stop orders are the mirror image of sell
+/// trailing stop orders, and are most appropriate for use in falling markets.
+/// Products: CFD, CASH, FOP, FUT, OPT, STK, WAR
+/// </summary>
+Order OrderSamples::TrailingStop(std::string action, Decimal quantity, double trailingPercent, double trailStopPrice) {
 	// ! [trailingstop]
 	Order order;
 	order.action = action;
@@ -364,17 +367,18 @@ Order OrderSamples::TrailingStop(std::string action, Decimal quantity, double tr
 	return order;
 }
 
-	/// <summary>
-    /// A trailing stop limit order is designed to allow an investor to specify a limit on the maximum possible loss, without setting a limit
-    /// on the maximum possible gain. A SELL trailing stop limit moves with the market price, and continually recalculates the stop trigger
-    /// price at a fixed amount below the market price, based on the user-defined "trailing" amount. The limit order price is also continually
-    /// recalculated based on the limit offset. As the market price rises, both the stop price and the limit price rise by the trail amount and
-    /// limit offset respectively, but if the stock price falls, the stop price remains unchanged, and when the stop price is hit a limit order
-    /// is submitted at the last calculated limit price. A "Buy" trailing stop limit order is the mirror image of a sell trailing stop limit,
-    /// and is generally used in falling markets.
-    /// Products: BOND, CFD, CASH, FUT, FOP, OPT, STK, WAR
-    /// </summary>
-Order OrderSamples::TrailingStopLimit(std::string action, Decimal quantity, double lmtPriceOffset, double trailingAmount, double trailStopPrice){
+/// <summary>
+/// A trailing stop limit order is designed to allow an investor to specify a limit on the maximum possible loss, without setting a limit
+/// on the maximum possible gain. A SELL trailing stop limit moves with the market price, and continually recalculates the stop trigger
+/// price at a fixed amount below the market price, based on the user-defined "trailing" amount. The limit order price is also continually
+/// recalculated based on the limit offset. As the market price rises, both the stop price and the limit price rise by the trail amount and
+/// limit offset respectively, but if the stock price falls, the stop price remains unchanged, and when the stop price is hit a limit order
+/// is submitted at the last calculated limit price. A "Buy" trailing stop limit order is the mirror image of a sell trailing stop limit,
+/// and is generally used in falling markets.
+/// Products: BOND, CFD, CASH, FUT, FOP, OPT, STK, WAR
+/// </summary>
+Order OrderSamples::TrailingStopLimit(std::string action, Decimal quantity, double lmtPriceOffset,
+                                      double trailingAmount, double trailStopPrice) {
 	// ! [trailingstoplimit]
 	Order order;
 	order.action = action;
@@ -387,21 +391,21 @@ Order OrderSamples::TrailingStopLimit(std::string action, Decimal quantity, doub
 	return order;
 }
 
-	/// <summary>
-    /// Create combination orders that include options, stock and futures legs (stock legs can be included if the order is routed
-    /// through SmartRouting). Although a combination/spread order is constructed of separate legs, it is executed as a single transaction
-    /// if it is routed directly to an exchange. For combination orders that are SmartRouted, each leg may be executed separately to ensure
-    /// best execution.
-    /// Products: OPT, STK, FUT
-    /// </summary>
-Order OrderSamples::ComboLimitOrder(std::string action, Decimal quantity, double limitPrice, bool nonGuaranteed){
+/// <summary>
+/// Create combination orders that include options, stock and futures legs (stock legs can be included if the order is routed
+/// through SmartRouting). Although a combination/spread order is constructed of separate legs, it is executed as a single transaction
+/// if it is routed directly to an exchange. For combination orders that are SmartRouted, each leg may be executed separately to ensure
+/// best execution.
+/// Products: OPT, STK, FUT
+/// </summary>
+Order OrderSamples::ComboLimitOrder(std::string action, Decimal quantity, double limitPrice, bool nonGuaranteed) {
 	// ! [combolimit]
 	Order order;
 	order.action = action;
 	order.orderType = "LMT";
 	order.totalQuantity = quantity;
 	order.lmtPrice = limitPrice;
-	if(nonGuaranteed){
+	if (nonGuaranteed) {
 		TagValueSPtr tag1(new TagValue("NonGuaranteed", "1"));
 		order.smartComboRoutingParams.reset(new TagValueList());
 		order.smartComboRoutingParams->push_back(tag1);
@@ -410,20 +414,20 @@ Order OrderSamples::ComboLimitOrder(std::string action, Decimal quantity, double
 	return order;
 }
 
-	/// <summary>
-    /// Create combination orders that include options, stock and futures legs (stock legs can be included if the order is routed
-    /// through SmartRouting). Although a combination/spread order is constructed of separate legs, it is executed as a single transaction
-    /// if it is routed directly to an exchange. For combination orders that are SmartRouted, each leg may be executed separately to ensure
-    /// best execution.
-    /// Products: OPT, STK, FUT
-    /// </summary>
-Order OrderSamples::ComboMarketOrder(std::string action, Decimal quantity, bool nonGuaranteed){
+/// <summary>
+/// Create combination orders that include options, stock and futures legs (stock legs can be included if the order is routed
+/// through SmartRouting). Although a combination/spread order is constructed of separate legs, it is executed as a single transaction
+/// if it is routed directly to an exchange. For combination orders that are SmartRouted, each leg may be executed separately to ensure
+/// best execution.
+/// Products: OPT, STK, FUT
+/// </summary>
+Order OrderSamples::ComboMarketOrder(std::string action, Decimal quantity, bool nonGuaranteed) {
 	// ! [combomarket]
 	Order order;
 	order.action = action;
 	order.orderType = "MKT";
 	order.totalQuantity = quantity;
-	if(nonGuaranteed){
+	if (nonGuaranteed) {
 		TagValueSPtr tag1(new TagValue("NonGuaranteed", "1"));
 		order.smartComboRoutingParams.reset(new TagValueList());
 		order.smartComboRoutingParams->push_back(tag1);
@@ -432,26 +436,27 @@ Order OrderSamples::ComboMarketOrder(std::string action, Decimal quantity, bool 
 	return order;
 }
 
-	/// <summary>
-    /// Create combination orders that include options, stock and futures legs (stock legs can be included if the order is routed
-    /// through SmartRouting). Although a combination/spread order is constructed of separate legs, it is executed as a single transaction
-    /// if it is routed directly to an exchange. For combination orders that are SmartRouted, each leg may be executed separately to ensure
-    /// best execution.
-    /// Products: OPT, STK, FUT
-    /// </summary>
-Order OrderSamples::LimitOrderForComboWithLegPrices(std::string action, Decimal quantity, std::vector<double> legprices, bool nonGuaranteed){
+/// <summary>
+/// Create combination orders that include options, stock and futures legs (stock legs can be included if the order is routed
+/// through SmartRouting). Although a combination/spread order is constructed of separate legs, it is executed as a single transaction
+/// if it is routed directly to an exchange. For combination orders that are SmartRouted, each leg may be executed separately to ensure
+/// best execution.
+/// Products: OPT, STK, FUT
+/// </summary>
+Order OrderSamples::LimitOrderForComboWithLegPrices(std::string action, Decimal quantity, std::vector<double> legprices,
+                                                    bool nonGuaranteed) {
 	// ! [limitordercombolegprices]
 	Order order;
 	order.action = action;
 	order.orderType = "LMT";
 	order.totalQuantity = quantity;
 	order.orderComboLegs.reset(new Order::OrderComboLegList());
-	for(unsigned int i = 0; i < legprices.size(); i++){
+	for (unsigned int i = 0; i < legprices.size(); i++) {
 		OrderComboLegSPtr comboLeg(new OrderComboLeg());
 		comboLeg->price = legprices[i];
 		order.orderComboLegs->push_back(comboLeg);
 	}
-	if(nonGuaranteed){
+	if (nonGuaranteed) {
 		TagValueSPtr tag1(new TagValue("NonGuaranteed", "1"));
 		order.smartComboRoutingParams.reset(new TagValueList());
 		order.smartComboRoutingParams->push_back(tag1);
@@ -459,6 +464,7 @@ Order OrderSamples::LimitOrderForComboWithLegPrices(std::string action, Decimal 
 	// ! [limitordercombolegprices]
 	return order;
 }
+
 /* UNNECESSARY NOW
 
 	/// <summary>

@@ -12,57 +12,46 @@ struct Bulletin {
 
 	Bulletin() = default;
 
-	explicit Bulletin(const int msg_id_, const int msg_type_,
-	                  std::string message_, std::string orig_exchange_) : msg_id(msg_id_),
-	                                                                    msg_type(msg_type_),
-	                                                                    message(std::move(message_)),
-	                                                                    orig_exchange(std::move(orig_exchange_)) {
-	}
+	explicit Bulletin(const int msg_id_, const int msg_type_, std::string message_, std::string orig_exchange_) :
+		msg_id(msg_id_), msg_type(msg_type_), message(std::move(message_)), orig_exchange(std::move(orig_exchange_)) {}
 };
 
 class NewsManager {
 public:
-	NewsManager(EClientSocket &client, BlockingHub &hub, ObjectHub &obj, Logger &logger) : logger_(logger),
-	                                                                                           client_(client),
-	                                                                                           obj_(obj), hub_(hub) {
+	NewsManager(EClientSocket& client, BlockingHub& hub, ObjectHub& obj, Logger& logger) : logger_(logger),
+		client_(client), obj_(obj), hub_(hub) {
 		// Create object where to store bulletin
-		news_ = obj_.try_get<BulletinStoreTag, std::vector<Bulletin> >();
+		news_ = obj_.try_get<BulletinStoreTag, std::vector<Bulletin>>();
 	}
 
-	void startSubscription() const {
-		client_.reqNewsBulletins(true);
-	}
+	void startSubscription() const { client_.reqNewsBulletins(true); }
 
-	void stopSubscription() const {
-		client_.reqNewsBulletins(false);
-	}
+	void stopSubscription() const { client_.reqNewsBulletins(false); }
 
 	void getBulletins() const {
 		if (news_) {
-			for (const auto &bulletin: *news_) {
+			for (const auto& bulletin : *news_) {
 				LOG_INFO_TAG(BULLETIN, "Bulletin id: {}, type: {}, message: {}, exchange: {}.", bulletin.msg_id,
 				             bulletin.msg_type, bulletin.message, bulletin.orig_exchange);
 			}
-		} else {
-			LOG_INFO_TAG(BULLETIN, "No bulletins received yet.");
 		}
+		else { LOG_INFO_TAG(BULLETIN, "No bulletins received yet."); }
 	}
 
 	void getLastBulletin() const {
 		if (news_ && !news_->empty()) {
-			const auto &bulletin = news_->back();
+			const auto& bulletin = news_->back();
 			LOG_INFO_TAG(BULLETIN, "Last Bulletin id: {}, type: {}, message: {}, exchange: {}.", bulletin.msg_id,
 			             bulletin.msg_type, bulletin.message, bulletin.orig_exchange);
-		} else {
-			LOG_INFO_TAG(BULLETIN, "No bulletins received yet.");
 		}
+		else { LOG_INFO_TAG(BULLETIN, "No bulletins received yet."); }
 	}
 
 private:
-	Logger &logger_;
-	EClientSocket &client_;
-	ObjectHub &obj_;
-	BlockingHub &hub_;
+	Logger& logger_;
+	EClientSocket& client_;
+	ObjectHub& obj_;
+	BlockingHub& hub_;
 
-	std::vector<Bulletin> *news_;
+	std::vector<Bulletin>* news_;
 };

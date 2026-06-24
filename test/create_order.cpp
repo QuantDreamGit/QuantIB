@@ -30,16 +30,19 @@ int main() {
 	std::optional<std::unordered_map<int, OpenOrders>*> open_orders = ib->getOpenOrders();
 	if (open_orders.has_value()) {
 		std::cout << "Open orders: " << open_orders.value()->size() << std::endl;
-		for (const auto &order: *open_orders.value()) {
+		for (const auto& order : *open_orders.value()) {
 			std::cout << "Order id: " << order.second.orderDetails.order_id << std::endl;
 			std::cout << "Contract symbol: " << order.second.orderDetails.contract.symbol << std::endl;
 			std::cout << "Order action: " << order.second.orderDetails.order.action << std::endl;
 			std::cout << "Order type: " << order.second.orderDetails.order.orderType << std::endl;
-			std::cout << "Order quantity: " << DecimalFunctions::decimalToString(order.second.orderDetails.order.totalQuantity) << std::endl;
+			std::cout << "Order quantity: " << DecimalFunctions::decimalToString(
+				order.second.orderDetails.order.totalQuantity) << std::endl;
 			std::cout << "Order limit price: " << order.second.orderDetails.order.lmtPrice << std::endl;
 			std::cout << "Order status: " << order.second.orderStatus.status << std::endl;
-			std::cout << "Order filled quantity: " << DecimalFunctions::decimalToString(order.second.orderStatus.filled) << std::endl;
-			std::cout << "Order remaining quantity: " << DecimalFunctions::decimalToString(order.second.orderStatus.remaining) << std::endl;
+			std::cout << "Order filled quantity: " << DecimalFunctions::decimalToString(order.second.orderStatus.filled)
+				<< std::endl;
+			std::cout << "Order remaining quantity: " << DecimalFunctions::decimalToString(
+				order.second.orderStatus.remaining) << std::endl;
 			std::cout << "Order average fill price: " << order.second.orderStatus.avgFillPrice << std::endl;
 		}
 	}
@@ -51,7 +54,7 @@ int main() {
 
 	if (closed_orders.has_value()) {
 		std::cout << "Closed orders: " << closed_orders.value()->size() << std::endl;
-		for (const auto &order: *closed_orders.value()) {
+		for (const auto& order : *closed_orders.value()) {
 			std::cout << "Order id: " << order.second.orderDetails.order_id << std::endl;
 			std::cout << "Average price fill: " << order.second.orderStatus.avgFillPrice << std::endl;
 		}

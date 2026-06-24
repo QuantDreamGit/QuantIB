@@ -15,35 +15,27 @@ struct Position {
 
 	Position() = default;
 
-	explicit Position(std::string account_, const Contract &contract_, const Decimal pos_,
-	                  const double avgCost_) : account(std::move(account_)),
-	                                          contract(contract_),
-	                                          pos(pos_), avgCost(avgCost_) {
-	}
+	explicit Position(std::string account_, const Contract& contract_, const Decimal pos_, const double avgCost_)
+		: account(std::move(account_)), contract(contract_), pos(pos_), avgCost(avgCost_) {}
 };
 
 class PositionManager {
 public:
-	PositionManager(EClientSocket &client, BlockingHub &hub, ObjectHub &obj, Logger &logger) :
-		logger_(logger), client_(client), obj_(obj), hub_(hub) {
-
+	PositionManager(EClientSocket& client, BlockingHub& hub, ObjectHub& obj, Logger& logger)
+		: logger_(logger), client_(client), obj_(obj), hub_(hub) {
 		// Create the subscription
-		hub_.subscribe<PositionStoreTag, std::unordered_map<int, Position> >([&]() {
-			client_.reqPositions();
-		});
+		hub_.subscribe<PositionStoreTag, std::unordered_map<int, Position>>([&]() { client_.reqPositions(); });
 		// Get the pointer to the position store
-		positions_ = obj_.get_or_create<PositionStoreTag,std::unordered_map<int, Position>>();
+		positions_ = obj_.get_or_create<PositionStoreTag, std::unordered_map<int, Position>>();
 	}
 
-	[[nodiscard]] const std::unordered_map<int, Position> *getPositions() const {
-		return positions_;
-	}
+	[[nodiscard]] const std::unordered_map<int, Position>* getPositions() const { return positions_; }
 
 private:
-	Logger &logger_;
-	EClientSocket &client_;
-	ObjectHub &obj_;
-	BlockingHub &hub_;
+	Logger& logger_;
+	EClientSocket& client_;
+	ObjectHub& obj_;
+	BlockingHub& hub_;
 
-	std::unordered_map<int, Position> *positions_;
+	std::unordered_map<int, Position>* positions_;
 };

@@ -1,12 +1,30 @@
 #pragma once
+
 #include "quantib/risk_manager/risk_manager.h"
 
-// In logger.hpp you can choose if tick data should be displayed with ENABLE_TICK_LOGGING
+// In logger.hpp you can choose if tick data should be displayed with
+// ENABLE_TICK_LOGGING
 
-using MyRiskManager = RiskManager<
-	ContractReady<true, FixedRetry<10, 500>>,
-	MktDataReady<true, FixedRetry<10, 500>>,
-	MarketIsOpen<true>,
-	MaxOrderNotional<1000, Side::Buy>,
-	MaxOrderNotional<1000, Side::Sell>
->;
+class DefaultRiskManager;
+
+using DefaultRiskManagerBase = RiskManager<DefaultRiskManager, ContractReady<
+	                                           DefaultRiskManager, true, FixedRetry<10, 500>>, MktDataReady<
+	                                           DefaultRiskManager, true, FixedRetry<10, 500>>, MarketIsOpen<
+	                                           DefaultRiskManager, true>, MaxOrderNotional<
+	                                           DefaultRiskManager, 1000, Side::Buy>, MaxOrderNotional<
+	                                           DefaultRiskManager, 1000, Side::Sell>>;
+
+class DefaultRiskManager : public DefaultRiskManagerBase {
+public:
+	using DefaultRiskManagerBase::DefaultRiskManagerBase;
+};
+
+class DefaultStrategy {
+public:
+	DefaultStrategy() = default;
+};
+
+struct DefaultProfile {
+	using RiskManager = DefaultRiskManager;
+	using Strategy = DefaultStrategy;
+};

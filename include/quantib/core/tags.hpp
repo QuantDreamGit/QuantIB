@@ -17,6 +17,7 @@ struct SubscriptionTag {
 struct PermanentTag {
 	static constexpr std::string_view category = "permanent";
 };
+
 // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 // Permanent objects
 struct OrderStoreTag : PermanentTag {
@@ -39,6 +40,10 @@ struct MarketDataStoreTag : PermanentTag {
 	static constexpr std::string_view name = "MarketDataStoreTag";
 };
 
+struct AccountSummaryStoreTag : PermanentTag {
+	static constexpr std::string_view name = "AccountSummaryTag";
+};
+
 struct AccountStoreTag : PermanentTag {
 	static constexpr std::string_view name = "AccountStoreTag";
 };
@@ -58,6 +63,7 @@ struct BulletinStoreTag : PermanentTag {
 struct NextIdTag : PermanentTag {
 	static constexpr std::string_view name = "NextIdTag";
 };
+
 // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 // Request objects
 struct AccountIdTag : RequestTag {
@@ -87,8 +93,6 @@ struct ClosedOrdersTag : RequestTag {
 struct MarketDataTypeTag : RequestTag {
 	static constexpr std::string_view name = "MarketDataTypeTag";
 };
+
 // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 // Subscription objects
-struct AccountSummaryTag : SubscriptionTag {
-	static constexpr std::string_view name = "AccountSummaryTag";
-};

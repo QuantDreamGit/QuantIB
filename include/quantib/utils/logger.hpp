@@ -52,9 +52,9 @@ class Logger {
 	// This will be the scale: STRATEGY, INFO, DEBUG, ERROR
 public:
 	using log_level = spdlog::level::level_enum;
+
 	explicit Logger(const log_level level = LOG_DEBUG_LVL, std::string path = "", const bool verbose = true,
-	                const bool write = true) : logger_({}), level_(level), verbose_(verbose),
-	                                           write_(write),
+	                const bool write = true) : logger_({}), level_(level), verbose_(verbose), write_(write),
 	                                           path_(std::move(path)) {
 		// Get current date
 		const time_t timestamp = time(nullptr); // Time from unix epoch
@@ -74,50 +74,35 @@ public:
 			// Finally, create the multi-sink logger
 			logger_ = std::make_shared<spdlog::logger>("multi_sink", spdlog::sinks_init_list{console_sink, file_sink});
 			logger_->set_level(level);
-		} catch (const spdlog::spdlog_ex &ex) {
-			std::cerr << "Log init failed: " << ex.what() << std::endl;
 		}
+		catch (const spdlog::spdlog_ex& ex) { std::cerr << "Log init failed: " << ex.what() << std::endl; }
 
 		LOG_DEBUG_TAG(LOGGER, "Initialized correctly with level: {}.", spdlog::level::to_string_view(level_));
 	}
 
-	template<typename... Args>
-	void info(fmt::format_string<Args...> msg, Args&&... args) {
-		logger_->info(msg, std::forward<Args>(args)...);
+	template <typename... Args>
+	void info(std::string_view msg, Args&&... args) { logger_->info(fmt::runtime(msg), std::forward<Args>(args)...); }
+
+	template <typename... Args>
+	void debug(std::string_view msg, Args&&... args) { logger_->debug(fmt::runtime(msg), std::forward<Args>(args)...); }
+
+	template <typename... Args>
+	void error(std::string_view msg, Args&&... args) { logger_->error(fmt::runtime(msg), std::forward<Args>(args)...); }
+
+	template <typename... Args>
+	void critical(std::string_view msg, Args&&... args) {
+		logger_->critical(fmt::runtime(msg), std::forward<Args>(args)...);
 	}
 
-	template<typename... Args>
-	void debug(fmt::format_string<Args...> msg, Args&&... args) {
-		logger_->debug(msg, std::forward<Args>(args)...);
-	}
+	template <typename... Args>
+	void trace(std::string_view msg, Args&&... args) { logger_->trace(fmt::runtime(msg), std::forward<Args>(args)...); }
 
-	template<typename... Args>
-	void error(fmt::format_string<Args...> msg, Args&&... args) {
-		logger_->error(msg, std::forward<Args>(args)...);
-	}
+	template <typename... Args>
+	void warn(std::string_view msg, Args&&... args) { logger_->warn(fmt::runtime(msg), std::forward<Args>(args)...); }
 
-	template<typename... Args>
-	void critical(fmt::format_string<Args...> msg, Args&&... args) {
-		logger_->critical(msg, std::forward<Args>(args)...);
-	}
+	spdlog::logger* operator->() noexcept { return logger_.get(); }
 
-	template<typename... Args>
-	void trace(fmt::format_string<Args...> msg, Args&&... args) {
-		logger_->trace(msg, std::forward<Args>(args)...);
-	}
-
-	template<typename... Args>
-	void warn(fmt::format_string<Args...> msg, Args&&... args) {
-		logger_->warn(msg, std::forward<Args>(args)...);
-	}
-
-	spdlog::logger* operator->() noexcept {
-		return logger_.get();
-	}
-
-	const spdlog::logger* operator->() const noexcept {
-		return logger_.get();
-	}
+	const spdlog::logger* operator->() const noexcept { return logger_.get(); }
 
 private:
 	std::shared_ptr<spdlog::logger> logger_;

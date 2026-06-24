@@ -1,5 +1,6 @@
 #include "quantib/sync/ib.hpp"
 #include <iostream>
+
 int main() {
 	const auto ib = std::make_unique<IB>();
 	auto ok = ib->connect();

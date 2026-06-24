@@ -37,11 +37,17 @@ file(GLOB_RECURSE QUANTIB_HEADERS
         CONFIGURE_DEPENDS
         "${PROJECT_SOURCE_DIR}/include/*.h"
         "${PROJECT_SOURCE_DIR}/include/*.hpp"
+        "${PROJECT_SOURCE_DIR}/include/*.tpp"
 )
 
 add_library(quantib
         ${QUANTIB_SOURCES}
         ${QUANTIB_HEADERS}
+)
+
+target_precompile_headers(quantib
+        PRIVATE
+        "${PROJECT_SOURCE_DIR}/include/config.h"
 )
 
 target_include_directories(quantib

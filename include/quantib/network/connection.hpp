@@ -18,13 +18,13 @@ public:
 	using RequestFunc = std::function<void()>;
 	using Clock = std::chrono::steady_clock;
 
-	explicit BlockingHub(ObjectHub &obj, Logger &logger) : logger_(logger), obj_(obj) {
+	explicit BlockingHub(ObjectHub& obj, Logger& logger) : logger_(logger), obj_(obj) {
 		LOG_DEBUG_TAG(OBJ_HUB, "Initialized correctly.");
 	}
 
 	// Wait for the data
-	template<typename Tag, typename T>
-	std::optional<T> wait_for(const std::function<void()> &request) {
+	template <typename Tag, typename T>
+	std::optional<T> wait_for(const std::function<void()>& request) {
 		// Start timer
 		const Clock::time_point start = Clock::now();
 		const std::type_index key = typeid(Tag);
@@ -50,25 +50,19 @@ public:
 		// End Timer
 		auto us = std::chrono::duration_cast<std::chrono::microseconds>(Clock::now() - start).count();
 		if (us < 1000)
-			LOG_TRACE_TAG(PERFTIMER, "Tag={} latency={} us",
-		              NAMEOF_TYPE(Tag),
-		              us);
+			LOG_TRACE_TAG(PERFTIMER, "Tag={} latency={} us", NAMEOF_TYPE(Tag), us);
 		else
-			LOG_TRACE_TAG(PERFTIMER, "Tag={} latency={} ms",
-		              NAMEOF_TYPE(Tag),
-		              us / 1000);
+			LOG_TRACE_TAG(PERFTIMER, "Tag={} latency={} ms", NAMEOF_TYPE(Tag), us / 1000);
 
 		return result;
 	}
 
 	// Subscribe to data feed
-	template<typename T>
-	void subscribe(const std::function<void()> &request) {
-		subscribe<T, T>(request);
-	}
+	template <typename T>
+	void subscribe(const std::function<void()>& request) { subscribe<T, T>(request); }
 
-	template<typename Tag, typename T>
-	void subscribe(const std::function<void()> &request) {
+	template <typename Tag, typename T>
+	void subscribe(const std::function<void()>& request) {
 		// First lock the mutex to change isReady_ boolean
 		{
 			std::lock_guard<std::mutex> lk(mtx_);
@@ -88,13 +82,13 @@ public:
 		request();
 	}
 
-	template<typename T, typename... Args>
-	void subscribe(const std::function<void()> &request, Args &&... args) {
+	template <typename T, typename... Args>
+	void subscribe(const std::function<void()>& request, Args&&... args) {
 		subscribe<T, T>(request, std::forward<Args>(args)...);
 	}
 
-	template<typename Tag, typename T, typename... Args>
-	void subscribe(const std::function<void()> &request, Args &&... args) {
+	template <typename Tag, typename T, typename... Args>
+	void subscribe(const std::function<void()>& request, Args&&... args) {
 		// First lock the mutex to change isReady_ boolean
 		{
 			std::lock_guard<std::mutex> lk(mtx_);
@@ -106,7 +100,7 @@ public:
 	}
 
 	// Send data
-	template<typename Tag, typename T>
+	template <typename Tag, typename T>
 	void send(T value) {
 		// Here we have to differentiate betweenubscription feeds or sync request.
 		// Tags are derived from two base classes that indicates their types.
@@ -119,7 +113,8 @@ public:
 				isReady_[key] = true;
 			}
 			cv_.notify_all();
-		} else if (std::is_base_of_v<SubscriptionTag, Tag>) {
+		}
+		else if (std::is_base_of_v<SubscriptionTag, Tag>) {
 			std::lock_guard<std::mutex> lk(mtx_);
 			// Check if object has been created yet
 			// if (isReady_[key] == false) {
@@ -132,29 +127,29 @@ public:
 		}
 	}
 
-	template<typename Tag>
+	template <typename Tag>
 	void insertKey() {
 		std::lock_guard<std::mutex> lk(mtx_);
 		pendingTag_.insert(typeid(Tag));
 	}
 
-	template<typename Tag>
+	template <typename Tag>
 	inline bool containsKey() {
 		std::lock_guard<std::mutex> lk(mtx_);
 		return pendingTag_.contains(typeid(Tag));
 	}
 
-	template<typename Tag>
+	template <typename Tag>
 	inline void removeKey() {
 		std::lock_guard<std::mutex> lk(mtx_);
 		pendingTag_.erase(typeid(Tag));
 	}
 
 private:
-	Logger &logger_;
+	Logger& logger_;
 	std::mutex mtx_;
 	std::condition_variable cv_;
-	ObjectHub &obj_;
+	ObjectHub& obj_;
 	std::unordered_set<std::type_index> pendingTag_;
 	std::unordered_map<std::type_index, bool> isReady_;
 	std::unordered_map<std::type_index, std::any> value_;

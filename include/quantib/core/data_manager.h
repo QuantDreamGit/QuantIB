@@ -24,26 +24,14 @@ struct MarketData {
 
 		// Priority: real-time trade, then quote, then delayed trade/quote, then mark/close/open.
 		static constexpr TickType kPriority[] = {
-			TickType::LAST,
-			TickType::BID,
-			TickType::ASK,
-
-			TickType::DELAYED_LAST,
-			TickType::DELAYED_BID,
-			TickType::DELAYED_ASK,
-
-			TickType::MARK_PRICE,
-			TickType::CLOSE,
-			TickType::DELAYED_CLOSE,
-			TickType::OPEN,
+			TickType::LAST, TickType::BID, TickType::ASK, TickType::DELAYED_LAST, TickType::DELAYED_BID,
+			TickType::DELAYED_ASK, TickType::MARK_PRICE, TickType::CLOSE, TickType::DELAYED_CLOSE, TickType::OPEN,
 			TickType::DELAYED_OPEN
 		};
 
 		for (TickType t : kPriority) {
 			auto it = price_map.find(t);
-			if (it != price_map.end()) {
-				return it->second;
-			}
+			if (it != price_map.end()) { return it->second; }
 		}
 
 		return -1.0;
@@ -57,10 +45,10 @@ struct MarketDataStore {
 
 class DataManager {
 public:
-	DataManager(EClientSocket &client, BlockingHub &hub, ObjectHub &obj, Logger &logger, const int market_data_type = 3) : logger_(logger), client_(client), obj_(obj),
-																	 hub_(hub) {
+	DataManager(EClientSocket& client, BlockingHub& hub, ObjectHub& obj, Logger& logger,
+	            const int market_data_type = 3) : logger_(logger), client_(client), obj_(obj), hub_(hub) {
 		setMarketDataType(market_data_type);
-		data_map_ = &obj_.create<MarketDataStoreTag, std::unordered_map<int, MarketDataStore> >();
+		data_map_ = &obj_.create<MarketDataStoreTag, std::unordered_map<int, MarketDataStore>>();
 	}
 
 	void setMarketDataType(const int market_data_type = 3) const {
@@ -84,45 +72,42 @@ public:
 		client_.reqMarketDataType(market_data_type);
 	}
 
-	int getMarketDataType() const {
-		return *obj_.try_get<MarketDataTypeTag, int>();
-	}
+	int getMarketDataType() const { return *obj_.try_get<MarketDataTypeTag, int>(); }
 
-	void marketDataSub(const Contract &contract, const std::string &tick_list = "", bool snap = false, bool reg_snap =
-			                   false) {
+	void marketDataSub(const Contract& contract, const std::string& tick_list = "", bool snap = false,
+	                   bool reg_snap = false) {
 		conId_to_id_map_[contract.conId] = getNextId();
 		client_.reqMktData(getCurrentId(), contract, tick_list, snap, reg_snap, TagValueListSPtr());
 		subscribed_conId_.insert(getCurrentId());
 	}
 
-	[[nodiscard]] MarketData getMarketData(const Contract &contract) {
+	[[nodiscard]] MarketData getMarketData(const Contract& contract) {
 		return getMarketData(conId_to_id_map_[contract.conId]);
 	}
 
 	[[nodiscard]] MarketData getMarketData(const int req_id) const {
 		// For data safety it's better to get a copy
 		const auto it = data_map_->find(req_id);
-		if (it == data_map_->end())
-			return {};
+		if (it == data_map_->end()) return {};
 
 		return it->second.data;
 	}
 
-	[[nodiscard]] bool hasPrice(const Contract &contract) {
+	[[nodiscard]] bool hasPrice(const Contract& contract) {
 		if (const MarketData res = getMarketData(contract); res.has_price()) return true;
 		return false;
 	}
 
-	[[nodiscard]] std::optional<double> getPrice(const Contract &contract) {
+	[[nodiscard]] std::optional<double> getPrice(const Contract& contract) {
 		const MarketData res = getMarketData(contract);
 		return res.getPrice();
 	}
 
-	[[nodiscard]] double getAsk(const Contract &contract);
-	[[nodiscard]] double getBid(const Contract &contract);
-	[[nodiscard]] double getLast(const Contract &contract);
+	[[nodiscard]] double getAsk(const Contract& contract);
+	[[nodiscard]] double getBid(const Contract& contract);
+	[[nodiscard]] double getLast(const Contract& contract);
 
-	[[nodiscard]] bool hasSubscribed(const Contract &contract) {
+	[[nodiscard]] bool hasSubscribed(const Contract& contract) {
 		if (subscribed_conId_.contains(conId_to_id_map_[contract.conId])) return true;
 		return false;
 	}
@@ -131,13 +116,12 @@ public:
 	[[nodiscard]] int getCurrentId() const { return *obj_.try_get<NextIdTag, int>(); }
 
 private:
-	Logger &logger_;
-	EClientSocket &client_;
-	ObjectHub &obj_;
-	BlockingHub &hub_;
+	Logger& logger_;
+	EClientSocket& client_;
+	ObjectHub& obj_;
+	BlockingHub& hub_;
 
-	std::unordered_map<int, MarketDataStore> *data_map_;
+	std::unordered_map<int, MarketDataStore>* data_map_;
 	std::unordered_map<int, int> conId_to_id_map_;
 	std::unordered_set<int> subscribed_conId_;
 };
-

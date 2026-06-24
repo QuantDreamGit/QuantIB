@@ -13,7 +13,7 @@
 
 class RequestId {
 public:
-	explicit RequestId(const std::shared_ptr<Logger> &logger) : logger_(logger) {
+	explicit RequestId(const std::shared_ptr<Logger>& logger) : logger_(logger) {
 		LOG_DEBUG_TAG(REQ_ID, "Initialized correctly.");
 	}
 

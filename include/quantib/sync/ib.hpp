@@ -1,31 +1,40 @@
 #pragma once
+#include "Contract.h"
 #include "EClientSocket.h"
 #include "EReader.h"
 #include "EReaderOSSignal.h"
-#include "Contract.h"
 
+#include "quantib/core/account.hpp"
 #include "quantib/core/object_hub.hpp"
 #include "quantib/core/tags.hpp"
-#include "quantib/wrappers/base_wrapper.hpp"
-#include "quantib/core/account.hpp"
 #include "quantib/utils/logger.hpp"
+#include "quantib/wrappers/base_wrapper.hpp"
 
 #include <memory>
 #include <optional>
 #include <thread>
 
-#include "config.h"
+#include "../risk_manager/risk_manager.h"
 #include "quantib/core/bulletin_manager.h"
+#include "quantib/core/contract_manager.h"
 #include "quantib/core/data_manager.h"
 #include "quantib/core/order_manager.h"
 #include "quantib/core/position_manager.h"
-#include "../risk_manager/risk_manager.h"
-#include "quantib/core/contract_manager.h"
 #include "quantib/core/strategy_manager.h"
 
+template <typename ProfileT>
 class IB {
 public:
 	using log_level = spdlog::level::level_enum;
+	using Profile = ProfileT;
+
+	using StrategyManagerT = typename Profile::Strategy;
+	using RiskManagerT = typename Profile::RiskManager;
+	// using DataFeedT = typename Profile::DataFeed;
+	// DataFeed could be IB (default now), Polygon, ...
+	// using ExecutionT = typename Profile::Execution;
+	// Execution could be paper, backtest, live (default now)...
+
 	// Default Constructor
 	explicit IB(log_level lvl = LOG_TRACE_LVL) {
 		// Logger
@@ -42,17 +51,14 @@ public:
 
 	~IB() {
 		isRunning_ = false;
-		if (message_thread_.joinable())
-			message_thread_.join();
+		if (message_thread_.joinable()) message_thread_.join();
 
 		if (riskRunning_) {
 			riskRunning_ = false;
-			if (risk_thread_.joinable())
-				risk_thread_.join();
+			if (risk_thread_.joinable()) risk_thread_.join();
 		}
 
-		if (client_ && client_->isConnected())
-			client_->eDisconnect();
+		if (client_ && client_->isConnected()) client_->eDisconnect();
 	}
 
 	/* Network */
@@ -74,8 +80,7 @@ public:
 				}
 			});
 
-			auto nextId_ = hub_->wait_for<ConnectTag, int>([&]() {
-			}).value_or(-1);
+			auto nextId_ = hub_->wait_for<ConnectTag, int>([&]() {}).value_or(-1);
 			obj_->create<NextIdTag, int>(nextId_);
 
 			initializeManagers();
@@ -87,9 +92,7 @@ public:
 	}
 
 	/* Account */
-	void accountSummarySub(
-		const std::string &tags = AccountSummaryTags::all(),
-		const std::string &groups = "All");
+	void accountSummarySub(const std::string& tags = AccountSummaryTags::all(), const std::string& groups = "All");
 
 	void accountSummaryCancel() const;
 
@@ -100,22 +103,27 @@ public:
 	void accountUpdateCancel() const;
 
 	/* Contracts */
-	[[nodiscard]] std::optional<std::vector<ContractDetails> > getContractDetailsSync(
-		int reqId, const Contract &contract) const;
+	[[nodiscard]] std::optional<std::vector<ContractDetails>>
+	getContractDetailsSync(int reqId, const Contract& contract) const;
 
-	[[nodiscard]] std::optional<ContractDetails> getContractDetails(const Contract &contract) const;
+	[[nodiscard]] std::optional<ContractDetails>
+	getContractDetails(const Contract& contract) const;
 
-	[[nodiscard]] std::optional<ContractDetails> getContractDetails(const std::string &symbol) const;
+	[[nodiscard]] std::optional<ContractDetails>
+	getContractDetails(const std::string& symbol) const;
 
-	[[nodiscard]] std::optional<std::vector<Contract> > getContractsSync(int reqId, const Contract &contract) const;
+	[[nodiscard]] std::optional<std::vector<Contract>>
+	getContractsSync(int reqId, const Contract& contract) const;
 
-	[[nodiscard]] std::optional<Contract> getContract(const Contract &contract) const;
+	[[nodiscard]] std::optional<Contract>
+	getContract(const Contract& contract) const;
 
-	[[nodiscard]] std::optional<Contract> getContract(const std::string &symbol) const;
+	[[nodiscard]] std::optional<Contract>
+	getContract(const std::string& symbol) const;
 
-	void registerContract (const Contract &contract) const;
+	void registerContract(const Contract& contract) const;
 
-	void registerInstrument(const Contract &contract) const {
+	void registerInstrument(const Contract& contract) const {
 		registerContract(contract);
 		registerMarketData(contract);
 	}
@@ -138,16 +146,17 @@ public:
 		client_->placeOrder(getNextId(), contract, order);
 	}
 
-	[[nodiscard]] std::optional<std::unordered_map<int, OpenOrders> *> getOpenOrders() const;
+	[[nodiscard]] std::optional<std::unordered_map<int, OpenOrders>*>
+	getOpenOrders() const;
 
-	[[nodiscard]] std::optional<std::unordered_map<int, ClosedOrders> *> getClosedOrders() const;
+	[[nodiscard]] std::optional<std::unordered_map<int, ClosedOrders>*>
+	getClosedOrders() const;
 
-	void PositionsSub() const {
-		client_->reqPositions();
-	}
+	void PositionsSub() const { client_->reqPositions(); }
 
-	[[nodiscard]] std::optional<std::unordered_map<int, Position> *> getPositions() const {
-		if (auto *positions = obj_->try_get<PositionStoreTag, std::unordered_map<int, Position> >()) {
+	[[nodiscard]] std::optional<std::unordered_map<int, Position>*>
+	getPositions() const {
+		if (auto* positions = obj_->try_get<PositionStoreTag, std::unordered_map<int, Position>>()) {
 			return positions;
 		}
 		return std::nullopt;
@@ -158,23 +167,19 @@ public:
 		else bulletins_->stopSubscription();
 	}
 
-	[[nodiscard]] std::optional<std::vector<Bulletin> *> getBulletins() const {
-		if (auto *bulletins = obj_->try_get<BulletinStoreTag, std::vector<Bulletin> >()) {
-			return bulletins;
-		}
+	[[nodiscard]] std::optional<std::vector<Bulletin>*> getBulletins() const {
+		if (auto* bulletins = obj_->try_get<BulletinStoreTag, std::vector<Bulletin>>()) { return bulletins; }
 		return std::nullopt;
 	}
 
-	[[nodiscard]] EClientSocket &getClient() const {
-		return *client_;
-	}
+	[[nodiscard]] EClientSocket& getClient() const { return *client_; }
 
 	[[nodiscard]] int getNextId() const { return obj_->get_increment_int<NextIdTag>(); }
+
 	[[nodiscard]] int getCurrentId() const { return *obj_->try_get<NextIdTag, int>(); }
 
-	void registerMarketData(const Contract &contract, const std::string &tick_list = "", const bool snap = false,
-	                        const bool reg_snap =
-			                        false) const {
+	void registerMarketData(const Contract& contract, const std::string& tick_list = "", const bool snap = false,
+	                        const bool reg_snap = false) const {
 		data_->marketDataSub(contract, tick_list, snap, reg_snap);
 	}
 
@@ -182,14 +187,17 @@ protected:
 	void initializeManagers() {
 		// Managers
 		positions_ = std::make_unique<PositionManager>(*client_, *hub_, *obj_, *logger_);
-		orders_ = std::make_unique<OrderManager>(*client_, *hub_, *obj_, *logger_);
+		order_factory_ = std::make_unique<OrderFactory<RiskManagerT>>(*logger_);
+		orders_ = std::make_unique<OrderManager<RiskManagerT>>(*client_, *hub_, *obj_, *logger_, *order_factory_);
 		data_ = std::make_unique<DataManager>(*client_, *hub_, *obj_, *logger_);
 		contract_ = std::make_unique<ContractManager>(*client_, *hub_, *obj_, *logger_);
-		risk_ = std::make_unique<MyRiskManager>(
-			*client_, *hub_, *obj_, *logger_, *positions_, *orders_, *data_, *contract_);
+		risk_ = std::make_unique<RiskManagerT>(*client_, *hub_, *obj_, *logger_, *positions_, *orders_, *data_,
+		                                       *contract_);
 		risk_->start();
-		strategy_ = std::make_unique<StrategyManager>(*client_, *hub_, *obj_, *logger_, *risk_);
-		// bulletins_ = std::make_unique<BulletinManager>(*client_, *hub_, *obj_, *logger_);
+		strategy_ = std::make_unique<StrategyManager<StrategyManagerT, RiskManagerT>>(
+			*client_, *hub_, *obj_, *logger_, *risk_);
+		// bulletins_ = std::make_unique<BulletinManager>(*client_, *hub_, *obj_,
+		// *logger_);
 	}
 
 	std::shared_ptr<Logger> logger_;
@@ -202,9 +210,10 @@ protected:
 	// Mode is used to indicate whether commands should be sync or async
 	std::unique_ptr<BlockingHub> hub_;
 	std::unique_ptr<ObjectHub> obj_;
-	std::unique_ptr<MyRiskManager> risk_;
-	std::unique_ptr<StrategyManager> strategy_;
-	std::unique_ptr<OrderManager> orders_;
+	std::unique_ptr<RiskManagerT> risk_;
+	std::unique_ptr<OrderFactory<RiskManagerT>> order_factory_;
+	std::unique_ptr<StrategyManager<StrategyManagerT, RiskManagerT>> strategy_;
+	std::unique_ptr<OrderManager<RiskManagerT>> orders_;
 	std::unique_ptr<PositionManager> positions_;
 	std::unique_ptr<NewsManager> bulletins_;
 	std::unique_ptr<DataManager> data_;

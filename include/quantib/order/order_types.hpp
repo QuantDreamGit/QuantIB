@@ -7,10 +7,6 @@
 #include "OrderCondition.h"
 #include "PriceCondition.h"
 
-enum class OrderType {
-	Market,
-	Limit
-};
 
 class OrderSamples {
 public:
@@ -19,24 +15,27 @@ public:
 	static Order MarketOnClose(std::string action, Decimal quantity);
 	static Order MarketOnOpen(std::string action, Decimal quantity);
 	static Order MidpointMatch(std::string action, Decimal quantity);
-	static Order Midprice(const std::string &action, Decimal quantity, double priceCap);
+	static Order Midprice(const std::string& action, Decimal quantity, double priceCap);
 	static Order PeggedToMarket(std::string action, Decimal quantity, double marketOffset);
 	static Order LimitOrder(std::string action, Decimal quantity, double limitPrice);
 	static Order LimitOrderWithCashQty(std::string action, double limitPrice, double cashQty);
 	static Order LimitIfTouched(std::string action, Decimal quantity, double limitPrice, double triggerPrice);
 	static Order LimitOnClose(std::string action, Decimal quantity, double limitPrice);
 	static Order LimitOnOpen(std::string action, Decimal quantity, double limitPrice);
-	static void BracketOrder(int parentOrderId, Order& parent, Order& takeProfit, Order& stopLoss, std::string action, Decimal quantity, double limitPrice, double takeProfitLimitPrice, double stopLossPrice);
+	static void BracketOrder(int parentOrderId, Order& parent, Order& takeProfit, Order& stopLoss, std::string action,
+	                         Decimal quantity, double limitPrice, double takeProfitLimitPrice, double stopLossPrice);
 	static Order MarketToLimit(std::string action, Decimal quantity);
 	static Order MarketWithProtection(std::string action, Decimal quantity);
 	static Order Stop(std::string action, Decimal quantity, double stopPrice);
 	static Order StopLimit(std::string action, Decimal quantity, double limitPrice, double stopPrice);
 	static Order StopWithProtection(std::string action, Decimal quantity, double stopPrice);
 	static Order TrailingStop(std::string action, Decimal quantity, double trailingPercent, double trailStopPrice);
-	static Order TrailingStopLimit(std::string action, Decimal quantity, double lmtPriceOffset, double trailingAmount, double trailStopPrice);
+	static Order TrailingStopLimit(std::string action, Decimal quantity, double lmtPriceOffset, double trailingAmount,
+	                               double trailStopPrice);
 	static Order ComboLimitOrder(std::string action, Decimal quantity, double limitPrice, bool nonGuaranteed);
 	static Order ComboMarketOrder(std::string action, Decimal quantity, bool nonGuaranteed);
-	static Order LimitOrderForComboWithLegPrices(std::string action, Decimal quantity, std::vector<double> legprices, bool nonGuaranteed);
+	static Order LimitOrderForComboWithLegPrices(std::string action, Decimal quantity, std::vector<double> legprices,
+	                                             bool nonGuaranteed);
 	/*
 	static Order AtAuction(std::string action, Decimal quantity, double price);
 	static Order Discretionary(std::string action, Decimal quantity, double price, double discretionaryAmount);

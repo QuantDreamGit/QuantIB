@@ -3,28 +3,29 @@
 
 #include "Order.h"
 #include "trade_request.h"
-#include "config.h"
-#include "quantib/risk_manager/risk_manager.h"
-#include "quantib/risk_manager/risk_manager.h"
 
-enum class OrderBatchType {
-    SingleOrder,
-    LimitOrder,
-    BracketOrder
-};
+enum class OrderBatchType { SingleOrder, LimitOrder, BracketOrder };
 
 struct OrderBatch {
-    OrderBatchType batch_type;
-    std::vector<Order> orders;
+	OrderBatchType batch_type;
+	std::vector<Order> orders;
 
-    bool isEmpty() const { return orders.empty(); }
-    std::size_t size() const { return orders.size(); }
+	bool isEmpty() const { return orders.empty(); }
+	std::size_t size() const { return orders.size(); }
 };
 
+template <typename RiskManagerT>
 class OrderFactory {
 public:
-    OrderFactory(RiskManager &riskManager)
-    OrderBatch make(const TradeRequest& request) const;
+	using RiskManager = RiskManagerT;
+
+	explicit OrderFactory(Logger& logger) : logger_(logger) {}
+
+	void setRiskManager(RiskManager& risk) { risk_ = &risk; }
+
+	[[nodiscard]] OrderBatch make(const TradeRequest& request) const;
+
 private:
-    MyRiskManager risk_manager_;
+	Logger& logger_;
+	RiskManager* risk_ = nullptr;
 };

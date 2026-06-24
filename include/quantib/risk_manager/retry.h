@@ -9,21 +9,17 @@ struct RetryPolicy {
 struct NoRetry {
 	static constexpr int max_attempts = 1;
 
-	static std::chrono::milliseconds delayForAttempt(int) {
-		return std::chrono::milliseconds{0};
-	}
+	static std::chrono::milliseconds delayForAttempt(int) { return std::chrono::milliseconds{0}; }
 };
 
-template<int Attempts, int DelayMs>
+template <int Attempts, int DelayMs>
 struct FixedRetry {
 	static constexpr int max_attempts = Attempts;
 
-	static std::chrono::milliseconds delayForAttempt(int) {
-		return std::chrono::milliseconds{DelayMs};
-	}
+	static std::chrono::milliseconds delayForAttempt(int) { return std::chrono::milliseconds{DelayMs}; }
 };
 
-template<int Attempts, int BaseMs, int MaxMs>
+template <int Attempts, int BaseMs, int MaxMs>
 struct ExpRetry {
 	static constexpr int max_attempts = Attempts;
 
@@ -33,4 +29,3 @@ struct ExpRetry {
 		return std::chrono::milliseconds{delay};
 	}
 };
-
