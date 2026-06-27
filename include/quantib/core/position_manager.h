@@ -1,11 +1,14 @@
 #pragma once
+#include <unordered_map>
 #include <string>
+#include <utility>
 
 #include "Contract.h"
-#include "EClientSocket.h"
-#include "object_hub.hpp"
-#include "quantib/network/connection.hpp"
-#include "quantib/utils/logger.hpp"
+
+class EClientSocket;
+class BlockingHub;
+class ObjectHub;
+class Logger;
 
 struct Position {
 	std::string account;
@@ -21,15 +24,9 @@ struct Position {
 
 class PositionManager {
 public:
-	PositionManager(EClientSocket& client, BlockingHub& hub, ObjectHub& obj, Logger& logger)
-		: logger_(logger), client_(client), obj_(obj), hub_(hub) {
-		// Create the subscription
-		hub_.subscribe<PositionStoreTag, std::unordered_map<int, Position>>([&]() { client_.reqPositions(); });
-		// Get the pointer to the position store
-		positions_ = obj_.get_or_create<PositionStoreTag, std::unordered_map<int, Position>>();
-	}
+	PositionManager(EClientSocket& client, BlockingHub& hub, ObjectHub& obj, Logger& logger);
 
-	[[nodiscard]] const std::unordered_map<int, Position>* getPositions() const { return positions_; }
+	[[nodiscard]] const std::unordered_map<int, Position>* getPositions() const;
 
 private:
 	Logger& logger_;

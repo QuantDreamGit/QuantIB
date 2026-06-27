@@ -1,4 +1,5 @@
-#include "quantib/sync/ib.hpp"
+#include "quantib/core/account.hpp"
+#include "quantib/wrappers/base_wrapper.hpp"
 
 void ResponseWrapper::updateAccountValue(const std::string& key, const std::string& val, const std::string& currency,
                                          const std::string& accountName) {

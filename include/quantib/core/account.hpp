@@ -1,7 +1,8 @@
 #pragma once
 #include <string>
-#include <unordered_map>
 #include <string_view>
+#include <unordered_map>
+#include <vector>
 
 #include "Contract.h"
 #include "Decimal.h"
@@ -99,18 +100,5 @@ struct AccountSummaryTags {
 	inline static constexpr std::string_view DayTradesRemaining = "DayTradesRemaining";
 	inline static constexpr std::string_view Leverage = "Leverage";
 
-	static std::string all() {
-		return std::string(AccountType) + "," + std::string(NetLiquidation) + "," + std::string(TotalCashValue) + "," +
-			std::string(SettledCash) + "," + std::string(AccruedCash) + "," + std::string(BuyingPower) + "," +
-			std::string(EquityWithLoanValue) + "," + std::string(PreviousEquityWithLoanValue) + "," +
-			std::string(GrossPositionValue) + "," + std::string(ReqTEquity) + "," + std::string(ReqTMargin) + "," +
-			std::string(SMA) + "," + std::string(InitMarginReq) + "," + std::string(MaintMarginReq) + "," +
-			std::string(AvailableFunds) + "," + std::string(ExcessLiquidity) + "," + std::string(Cushion) + "," +
-			std::string(FullInitMarginReq) + "," + std::string(FullMaintMarginReq) + "," +
-			std::string(FullAvailableFunds) + "," + std::string(FullExcessLiquidity) + "," +
-			std::string(LookAheadNextChange) + "," + std::string(LookAheadInitMarginReq) + "," +
-			std::string(LookAheadMaintMarginReq) + "," + std::string(LookAheadAvailableFunds) + "," +
-			std::string(LookAheadExcessLiquidity) + "," + std::string(HighestSeverity) + "," +
-			std::string(DayTradesRemaining) + "," + std::string(Leverage);
-	}
+	static std::string all();
 };

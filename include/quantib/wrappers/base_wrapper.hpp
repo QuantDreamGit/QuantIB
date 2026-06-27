@@ -7,28 +7,23 @@
 #include "quantib/network/connection.hpp"
 #include "quantib/utils/logger.hpp"
 
-#include <iostream>
-#include <memory>
+#include <set>
+#include <string>
+#include <vector>
 
 #include "Execution.h"
-#include "quantib/options/option_chain.hpp"
 
 // This class is used to override default wrapper functions
 class ResponseWrapper : public DefaultEWrapper {
 public:
-	explicit ResponseWrapper(BlockingHub& hub, ObjectHub& obj, Logger& logger) : hub_(hub), obj_(obj), logger_(logger) {
-		LOG_DEBUG_TAG(WRAPPER, "Initialized correctly.");
-	}
+	explicit ResponseWrapper(BlockingHub& hub, ObjectHub& obj, Logger& logger);
 
 	~ResponseWrapper() override = default;
 
 	// Deprecated
 	// void connectAck() override { hub_->send(typeid(connectTag), true); }
 
-	void nextValidId(const int orderId) override {
-		if (hub_.containsKey<ConnectTag>()) { hub_.send<ConnectTag>(orderId); }
-		else hub_.send<NextValidIdTag>(orderId);
-	}
+	void nextValidId(int orderId) override;
 
 	/* Account ids */
 	void managedAccounts(const std::string& accountsList) override;
@@ -93,22 +88,9 @@ public:
 	void securityDefinitionOptionalParameter(int reqId, const std::string& exchange, int underlyingConId,
 	                                         const std::string& tradingClass, const std::string& multiplier,
 	                                         const std::set<std::string>& expirations,
-	                                         const std::set<double>& strikes) override {
-		LOG_DEBUG_TAG(WRAPPER, "OptionChain received: reqId={}, underlyingConId={}, tradingClass={}, multiplier={}, exchange={}, expirations.size()={}, strikes.size()={}",
-			reqId, underlyingConId, tradingClass, multiplier, exchange, expirations.size(), strikes.size());
-		obj_.try_append<SecurityDefinitionOptionalParameterTag, OptionChain>(
-		 	OptionChain(reqId, underlyingConId, tradingClass, multiplier, exchange, expirations, strikes));
-	}
+	                                         const std::set<double>& strikes) override;
 
-	void securityDefinitionOptionalParameterEnd(int reqId) override {
-		auto* object = obj_.try_get<SecurityDefinitionOptionalParameterTag, std::vector<OptionChain>>();
-		if (object) {
-			LOG_DEBUG_TAG(WRAPPER, "OptionChain received: reqId={}, Number of exchanges: {}", reqId, object->size());
-		} else {
-			LOG_DEBUG_TAG(WRAPPER, "OptionChain not received: reqId={}", reqId);
-		}
-		hub_.send<SecurityDefinitionOptionalParameterTag, std::vector<OptionChain>>(*object);
-	}
+	void securityDefinitionOptionalParameterEnd(int reqId) override;
 
 
 private:

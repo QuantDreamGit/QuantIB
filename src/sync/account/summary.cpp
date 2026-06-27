@@ -1,4 +1,5 @@
-#include "quantib/sync/ib.hpp"
+#include "quantib/core/account.hpp"
+#include "quantib/wrappers/base_wrapper.hpp"
 
 void ResponseWrapper::accountSummary(const int reqId, const std::string& account, const std::string& tag,
                                      const std::string& value, const std::string& currency) {

@@ -1,4 +1,5 @@
-#include "quantib/sync/ib.hpp"
+#include "quantib/core/position_manager.h"
+#include "quantib/wrappers/base_wrapper.hpp"
 
 void ResponseWrapper::position(const std::string& account, const Contract& contract, Decimal position, double avgCost) {
 	LOG_TRACE_TAG(WRAPPER, "Received position update for account {} and contract {}: position={}, avgCost={}", account,

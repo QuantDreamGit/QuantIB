@@ -1,5 +1,5 @@
 #include "config.h"
-#include "quantib/sync/ib.hpp"
+#include "quantib/wrappers/base_wrapper.hpp"
 
 void ResponseWrapper::execDetails(int reqId, const Contract& contract, const Execution& execution) {
 	// hub_->send<ExecutionDetailsTag, Execution>(execution);

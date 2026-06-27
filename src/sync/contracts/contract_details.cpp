@@ -1,4 +1,5 @@
-#include "quantib/sync/ib.hpp"
+#include "quantib/core/contract_manager.h"
+#include "quantib/wrappers/base_wrapper.hpp"
 
 void ResponseWrapper::contractDetails(int reqId, const ContractDetails& contractDetails) {
 	if (obj_.contains<ContractDetailsTag>()) obj_.try_append<ContractDetailsTag>(contractDetails);

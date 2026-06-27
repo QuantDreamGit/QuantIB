@@ -1,5 +1,6 @@
-#include "quantib/sync/ib.hpp"
+#include "quantib/core/order_manager.h"
 #include "quantib/core/tags.hpp"
+#include "quantib/wrappers/base_wrapper.hpp"
 
 void ResponseWrapper::openOrder(int orderId, const Contract& contract, const Order& order,
                                 const OrderState& order_state) {

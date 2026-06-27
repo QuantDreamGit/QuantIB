@@ -28,6 +28,8 @@ int main() {
 		std::pair<std::vector<std::string>, std::vector<double>> exp_strk = optChain.value().getFromNearestDate(1, 3, 282.5);
 	}
 
+	//test comment
+
 	// Then register instrument in a single exchange to get greeks
 	if (entireOptionChain.has_value()) {
 		double strike = *entireOptionChain.value()[0].strikes.begin();

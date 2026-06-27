@@ -1,11 +1,14 @@
 #pragma once
+#include <optional>
 #include <string>
+#include <unordered_map>
 
-#include "EClientSocket.h"
 #include "Contract.h"
-#include "object_hub.hpp"
-#include "quantib/network/connection.hpp"
-#include "quantib/utils/logger.hpp"
+
+class EClientSocket;
+class BlockingHub;
+class ObjectHub;
+class Logger;
 
 struct ContractInfo {
 	int con_id;
@@ -22,46 +25,22 @@ struct ContractInfo {
 
 class ContractManager {
 public:
-	ContractManager(EClientSocket& client, BlockingHub& hub, ObjectHub& obj, Logger& logger) : logger_(logger),
-		client_(client), obj_(obj), hub_(hub) {
-		contracts_ = &obj_.create<ContractStoreTag, std::unordered_map<int, ContractDetails>>();
-		contract_info = &obj_.create<ContractSymbolStoreTag, std::unordered_map<std::string, ContractInfo>>();
-	}
+	ContractManager(EClientSocket& client, BlockingHub& hub, ObjectHub& obj, Logger& logger);
 
-	void registerContract(const Contract& contract) const {
-		// Request contract details
-		client_.reqContractDetails(getNextId(), contract);
-		LOG_DEBUG_TAG(IB_STR, "Contract details request done for symbol {}.", contract.symbol);
-	}
+	void registerContract(const Contract& contract) const;
 
-	std::optional<ContractInfo> getContractInfo(const std::string& symbol) const {
-		if (const auto con_info = obj_.find_in_map<ContractSymbolStoreTag, std::string, ContractInfo>(symbol)) return
-			std::optional(*con_info);
-		return std::nullopt;
-	}
+	std::optional<ContractInfo> getContractInfo(const std::string& symbol) const;
 
-	std::optional<Contract> getContract(const int conId) const {
-		auto con_details = getContractDetails(conId);
-		if (con_details.has_value()) return con_details->contract;
-		return std::nullopt;
-	}
+	std::optional<Contract> getContract(int conId) const;
 
-	std::optional<Contract> getContract(const std::string& symbol) const {
-		return getContract((*contract_info)[symbol].con_id);
-	}
+	std::optional<Contract> getContract(const std::string& symbol) const;
 
-	std::optional<ContractDetails> getContractDetails(const int conId) const {
-		if (const auto contract = obj_.find_in_map<ContractStoreTag, int, ContractDetails>(conId)) return
-			std::optional(*contract);
-		return std::nullopt;
-	}
+	std::optional<ContractDetails> getContractDetails(int conId) const;
 
-	std::optional<ContractDetails> getContractDetails(const std::string& symbol) const {
-		return getContractDetails((*contract_info)[symbol].con_id);
-	}
+	std::optional<ContractDetails> getContractDetails(const std::string& symbol) const;
 
-	[[nodiscard]] int getNextId() const { return obj_.get_increment_int<NextIdTag>(); }
-	[[nodiscard]] int getCurrentId() const { return *obj_.try_get<NextIdTag, int>(); }
+	[[nodiscard]] int getNextId() const;
+	[[nodiscard]] int getCurrentId() const;
 
 private:
 	Logger& logger_;

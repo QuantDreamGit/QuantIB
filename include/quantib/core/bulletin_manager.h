@@ -1,8 +1,11 @@
 #pragma once
 #include <string>
+#include <vector>
 
-#include "EClientSocket.h"
-#include "quantib/network/connection.hpp"
+class EClientSocket;
+class BlockingHub;
+class ObjectHub;
+class Logger;
 
 struct Bulletin {
 	int msg_id{};
@@ -18,34 +21,15 @@ struct Bulletin {
 
 class NewsManager {
 public:
-	NewsManager(EClientSocket& client, BlockingHub& hub, ObjectHub& obj, Logger& logger) : logger_(logger),
-		client_(client), obj_(obj), hub_(hub) {
-		// Create object where to store bulletin
-		news_ = obj_.try_get<BulletinStoreTag, std::vector<Bulletin>>();
-	}
+	NewsManager(EClientSocket& client, BlockingHub& hub, ObjectHub& obj, Logger& logger);
 
-	void startSubscription() const { client_.reqNewsBulletins(true); }
+	void startSubscription() const;
 
-	void stopSubscription() const { client_.reqNewsBulletins(false); }
+	void stopSubscription() const;
 
-	void getBulletins() const {
-		if (news_) {
-			for (const auto& bulletin : *news_) {
-				LOG_INFO_TAG(BULLETIN, "Bulletin id: {}, type: {}, message: {}, exchange: {}.", bulletin.msg_id,
-				             bulletin.msg_type, bulletin.message, bulletin.orig_exchange);
-			}
-		}
-		else { LOG_INFO_TAG(BULLETIN, "No bulletins received yet."); }
-	}
+	void getBulletins() const;
 
-	void getLastBulletin() const {
-		if (news_ && !news_->empty()) {
-			const auto& bulletin = news_->back();
-			LOG_INFO_TAG(BULLETIN, "Last Bulletin id: {}, type: {}, message: {}, exchange: {}.", bulletin.msg_id,
-			             bulletin.msg_type, bulletin.message, bulletin.orig_exchange);
-		}
-		else { LOG_INFO_TAG(BULLETIN, "No bulletins received yet."); }
-	}
+	void getLastBulletin() const;
 
 private:
 	Logger& logger_;

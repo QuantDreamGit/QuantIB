@@ -1,4 +1,6 @@
-#include "quantib/sync/ib.hpp"
+#include "quantib/wrappers/base_wrapper.hpp"
+
+#include <unordered_set>
 
 inline const std::unordered_set<int> ignoredErrorCodes = {2104, 2106, 2158};
 

@@ -1,4 +1,5 @@
-#include "quantib/sync/ib.hpp"
+#include "quantib/core/account.hpp"
+#include "quantib/wrappers/base_wrapper.hpp"
 
 void ResponseWrapper::managedAccounts(const std::string& accountsList) {
 	// Update object or create it
