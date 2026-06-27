@@ -11,7 +11,6 @@ void notional_policy(const IB<ProfileT>* ib, const Contract& contract) {
 	auto result = ib->getContractsSync(1, contract);
 
 	if (result.has_value() && result.value().size() == 1) {
-		const auto big_order = OrderSamples::MarketOrder("BUY", DecimalFunctions::doubleToDecimal(100.0));
 		const auto final_contract = result.value()[0];
 
 		// First we have to register a subscription to the contract
@@ -19,26 +18,35 @@ void notional_policy(const IB<ProfileT>* ib, const Contract& contract) {
 
 		// Wait few seconds
 		std::cin.get();
-
+		auto large_request = TradeRequest(
+			TradeRequestContext(contract, Side::Buy, "Testing notional policy (should fail with default settings"),
+			MarketTradeSpec(100.0, OrderType::Market));
 		// Then try to place orders
 		std::cout << "Trying to place a big order: " << std::endl;
-		ib->placeOrder(final_contract, big_order);
+		ib->placeOrder(final_contract, large_request);
 
-		const auto small_order = OrderSamples::MarketOrder("BUY", DecimalFunctions::doubleToDecimal(10.0));
+		auto small_request = TradeRequest(
+			TradeRequestContext(contract, Side::Buy, "Testing Notional policy (should pass with default settings"),
+			MarketTradeSpec(10.0, OrderType::Market));
 		std::cout << "Trying to place a small order: " << std::endl;
-		ib->placeOrder(final_contract, small_order);
+		ib->placeOrder(final_contract, small_request);
 	}
 }
 
 template <typename ProfileT>
 void contract_ready(const IB<ProfileT>* ib, const Contract& contract) {
-	// If you want to test missing contract policy  using async method
-	const auto small_order = OrderSamples::MarketOrder("BUY", DecimalFunctions::doubleToDecimal(1));
-
 	// If risk manager detects a contract not subscribed it does using executeAction()
 	// ib->registerInstrument(contract);
 	// Try to immediately place order (should fail if not already registered!)
-	ib->placeOrder(contract, small_order);
+	/* Market Order Example
+	auto request = TradeRequest(
+		TradeRequestContext(contract, Side::Buy, "Testing contract ready policy"),
+	    MarketTradeSpec(1.0, OrderType::Market));
+	*/
+	auto request = TradeRequest(
+		TradeRequestContext(contract, Side::Buy, "Testing Bracket order"),
+		BracketOrderSpec(1, 62, 63, 61));
+	ib->placeOrder(request);
 }
 
 int main() {

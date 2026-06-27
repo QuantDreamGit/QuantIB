@@ -233,6 +233,8 @@ void OrderSamples::BracketOrder(int parentOrderId, Order& parent, Order& takePro
 	parent.orderType = "LMT";
 	parent.totalQuantity = quantity;
 	parent.lmtPrice = limitPrice;
+	parent.tif = "GTC";
+
 	//The parent and children orders will need this attribute set to false to prevent accidental executions.
 	//The LAST CHILD will have it set to true,
 	parent.transmit = false;
@@ -244,6 +246,7 @@ void OrderSamples::BracketOrder(int parentOrderId, Order& parent, Order& takePro
 	takeProfit.lmtPrice = takeProfitLimitPrice;
 	takeProfit.parentId = parentOrderId;
 	takeProfit.transmit = false;
+	takeProfit.tif = "GTC";
 
 	stopLoss.orderId = parent.orderId + 2;
 	stopLoss.action = (action == "BUY") ? "SELL" : "BUY";
@@ -255,6 +258,7 @@ void OrderSamples::BracketOrder(int parentOrderId, Order& parent, Order& takePro
 	//In this case, the low side order will be the last child being sent. Therefore, it needs to set this attribute to true
 	//to activate all its predecessors
 	stopLoss.transmit = true;
+	stopLoss.tif = "GTC";
 }
 
 //! [bracket]
@@ -324,6 +328,7 @@ Order OrderSamples::StopLimit(std::string action, Decimal quantity, double limit
 	order.totalQuantity = quantity;
 	order.lmtPrice = limitPrice;
 	order.auxPrice = stopPrice;
+	order.tif = "GTC";
 	// ! [stoplimit]
 	return order;
 }

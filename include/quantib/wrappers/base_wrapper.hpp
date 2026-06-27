@@ -11,6 +11,7 @@
 #include <memory>
 
 #include "Execution.h"
+#include "quantib/options/option_chain.hpp"
 
 // This class is used to override default wrapper functions
 class ResponseWrapper : public DefaultEWrapper {
@@ -84,6 +85,31 @@ public:
 	void tickString(int reqId, TickType tickType, const std::string& value) override;
 
 	void tickSize(int reqId, TickType field, Decimal size) override;
+
+	void tickOptionComputation(int reqId, TickType tickType, int tickAttrib, double impliedVol, double delta,
+	                           double optPrice, double pvDividend, double gamma, double vega, double theta,
+	                           double undPrice) override;
+
+	void securityDefinitionOptionalParameter(int reqId, const std::string& exchange, int underlyingConId,
+	                                         const std::string& tradingClass, const std::string& multiplier,
+	                                         const std::set<std::string>& expirations,
+	                                         const std::set<double>& strikes) override {
+		LOG_DEBUG_TAG(WRAPPER, "OptionChain received: reqId={}, underlyingConId={}, tradingClass={}, multiplier={}, exchange={}, expirations.size()={}, strikes.size()={}",
+			reqId, underlyingConId, tradingClass, multiplier, exchange, expirations.size(), strikes.size());
+		obj_.try_append<SecurityDefinitionOptionalParameterTag, OptionChain>(
+		 	OptionChain(reqId, underlyingConId, tradingClass, multiplier, exchange, expirations, strikes));
+	}
+
+	void securityDefinitionOptionalParameterEnd(int reqId) override {
+		auto* object = obj_.try_get<SecurityDefinitionOptionalParameterTag, std::vector<OptionChain>>();
+		if (object) {
+			LOG_DEBUG_TAG(WRAPPER, "OptionChain received: reqId={}, Number of exchanges: {}", reqId, object->size());
+		} else {
+			LOG_DEBUG_TAG(WRAPPER, "OptionChain not received: reqId={}", reqId);
+		}
+		hub_.send<SecurityDefinitionOptionalParameterTag, std::vector<OptionChain>>(*object);
+	}
+
 
 private:
 	BlockingHub& hub_;

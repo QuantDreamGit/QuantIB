@@ -11,6 +11,7 @@
 
 #include "Contract.h"
 #include "EClientSocket.h"
+#include "structs.h"
 
 #include "../core/object_hub.hpp"
 #include "quantib/network/connection.hpp"
@@ -41,13 +42,13 @@ public:
 		if (riskThread_.joinable()) { riskThread_.join(); }
 	}
 
-	[[nodiscard]] std::future<RiskResult> validate(const OrderIntent& order_intent) {
+	[[nodiscard]] std::future<RiskResult> validate(const TradeRequest& request) {
 		std::promise<RiskResult> promise;
 		auto future = promise.get_future();
 
 		{
 			std::lock_guard<std::mutex> lock(validation_mutex_);
-			validation_queue_.push_back({order_intent, std::move(promise)});
+			validation_queue_.push_back({request, std::move(promise)});
 		}
 
 		return future;
@@ -79,7 +80,7 @@ public:
 
 private:
 	struct ValidationRequest {
-		OrderIntent order_intent;
+		TradeRequest request;
 		std::promise<RiskResult> promise;
 	};
 
@@ -97,7 +98,7 @@ private:
 				local_queue.pop_front();
 
 				try {
-					RiskResult result = validateImpl<RiskPolicies...>(request.order_intent);
+					RiskResult result = validateImpl<RiskPolicies...>(request.request);
 
 					request.promise.set_value(result);
 				}
@@ -109,21 +110,19 @@ private:
 	}
 
 	template <typename Policy, typename... OtherPolicies>
-	[[nodiscard]] RiskResult validateImpl(const OrderIntent& order_intent, int attempt = 1) const {
-		const Order& order = order_intent.order;
-		const Contract& contract = order_intent.contract;
-
-		RiskResult res = Policy::check(order, contract, ctx_);
+	[[nodiscard]] RiskResult validateImpl(TradeRequest& request, int attempt = 1) const {
+		RiskResult res = Policy::check(request, ctx_);
+		Contract &contract = request.context.contract;
 
 		if (res.decision == RiskDecision::Reject) {
-			LOG_WARN_TAG(RISK, "Policy {} failed for order: {}, contract: {}. Action: {}", NAMEOF_TYPE(Policy),
-			             order.action, contract.symbol, NAMEOF_ENUM(res.action));
+			LOG_WARN_TAG(RISK, "Policy {} failed for contract: {}. Action: {}", NAMEOF_TYPE(Policy),
+			             contract.symbol, NAMEOF_ENUM(res.action));
 			return res;
 		}
 
 		if (res.decision == RiskDecision::Pending) {
-			LOG_WARN_TAG(RISK, "Policy {} pending for order: {}, contract: {}. Attempt {}/{}. Action: {}",
-			             NAMEOF_TYPE(Policy), order.action, contract.symbol, attempt, res.retry_policy.max_attempts,
+			LOG_WARN_TAG(RISK, "Policy {} pending for contract: {}. Attempt {}/{}. Action: {}",
+			             NAMEOF_TYPE(Policy), contract.symbol, attempt, res.retry_policy.max_attempts,
 			             NAMEOF_ENUM(res.action));
 
 			executeAction(res, contract);
@@ -131,20 +130,19 @@ private:
 			if (res.retry_policy.max_attempts <= 0 || attempt >= res.retry_policy.max_attempts) {
 				res.decision = RiskDecision::Reject;
 				LOG_WARN_TAG(
-					RISK, "Max attempts reached for policy {} on order: {}, contract: {}. Rejecting order. "
-					"Action: {}", NAMEOF_TYPE(Policy), order.action, contract.symbol, NAMEOF_ENUM(res.action));
+					RISK, "Max attempts reached for policy {} on contract: {}. Rejecting order. "
+					"Action: {}", NAMEOF_TYPE(Policy), contract.symbol, NAMEOF_ENUM(res.action));
 				return res;
 			}
 
 			std::this_thread::sleep_for(res.retry_policy.retry_delay);
 
-			return validateImpl<Policy, OtherPolicies...>(order_intent, attempt + 1);
+			return validateImpl<Policy, OtherPolicies...>(request, attempt + 1);
 		}
 
-		if constexpr (sizeof...(OtherPolicies) > 0) { return validateImpl<OtherPolicies...>(order_intent, 1); }
+		if constexpr (sizeof...(OtherPolicies) > 0) { return validateImpl<OtherPolicies...>(request, 1); }
 		else {
-			LOG_TRACE_TAG(RISK, "All policies passed for order: {}, contract: {}. Action: {}", order.action,
-			              contract.symbol, NAMEOF_ENUM(res.action));
+			LOG_TRACE_TAG(RISK, "All policies passed for contract: {}. Action: {}", contract.symbol, NAMEOF_ENUM(res.action));
 			return RiskResult::pass();
 		}
 	}
@@ -161,7 +159,6 @@ private:
 
 	RiskContext<Self> ctx_{obj_, logger_, order_, data_, position_, contract_};
 	std::deque<ValidationRequest> validation_queue_;
-	std::vector<OrderIntentBatch> order_intent_batch_vec_;
 	std::mutex validation_mutex_;
 	std::thread riskThread_;
 	std::atomic<bool> riskRunning_{false};

@@ -17,6 +17,10 @@ using DefaultRiskManagerBase = RiskManager<DefaultRiskManager, ContractReady<
 class DefaultRiskManager : public DefaultRiskManagerBase {
 public:
 	using DefaultRiskManagerBase::DefaultRiskManagerBase;
+	using DefaultRiskManagerBase::validate;
+	using DefaultRiskManagerBase::start;
+	using DefaultRiskManagerBase::stop;
+	using DefaultRiskManagerBase::executeAction;
 };
 
 class DefaultStrategy {

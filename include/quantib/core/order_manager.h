@@ -1,4 +1,5 @@
 #pragma once
+#include <ranges>
 #include <string>
 
 #include "Contract.h"
@@ -77,7 +78,19 @@ public:
 		closedOrders_ = &obj_.create<ClosedOrderStoreTag, std::unordered_map<int, ClosedOrders>>();
 	}
 
+	void send(OrderBatch &batch) const {
+		for (const auto& [contract, order] : std::views::zip(batch.contracts, batch.orders)) {
+			// Now we suppose a really simple execution
+			// We don't check any error or failure
+			client_.placeOrder(order.orderId, contract, order);
+			LOG_DEBUG_TAG(ORD_MGR, "Sent order with ID: {} for contract: {}.", order.orderId, contract.symbol);
+		}
+	}
+
 private:
+	[[nodiscard]] int getNextId() const { return obj_.get_increment_int<NextIdTag>(); }
+	[[nodiscard]] int getCurrentId() const { return *obj_.try_get<NextIdTag, int>(); }
+
 	Logger& logger_;
 	EClientSocket& client_;
 	ObjectHub& obj_;

@@ -1,5 +1,4 @@
 #pragma once
-#include "ib.hpp"
 
 template <typename ProfileT>
 void IB<ProfileT>::accountSummarySub(const std::string& tags, const std::string& groups) {
@@ -102,7 +101,7 @@ IB<ProfileT>::getContractDetailsSync(int reqId, const Contract& contract) const 
 }
 
 template <typename ProfileT>
-std::optional<ContractDetails> IB<ProfileT>::getContractDetails(const Contract& contract) const {
+std::optional<ContractDetails> IB<ProfileT>::getContractDetails(const Contract& contract) {
 	if (contract.conId != 0) return contract_->getContractDetails(contract.conId);
 	if (contract.symbol != "") return contract_->getContractDetails(contract.symbol);
 	return std::nullopt;

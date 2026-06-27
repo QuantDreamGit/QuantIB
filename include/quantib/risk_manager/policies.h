@@ -2,7 +2,7 @@
 
 #include "Order.h"
 #include "retry.h"
-#include "structs.h"
+#include "risk_types.hpp"
 
 // TODO: Add policies
 /*
@@ -17,8 +17,9 @@
 
 template <typename RiskManagerT, bool RequireContractDetails = true, typename Retry = NoRetry>
 struct ContractReady {
-	static RiskResult check(const Order&, const Contract& contract, const RiskContext<RiskManagerT>& ctx) {
+	static RiskResult check(const TradeRequest& request, const RiskContext<RiskManagerT>& ctx) {
 		if constexpr (RequireContractDetails) {
+			const Contract &contract = request.context.contract;
 			const auto contract_info = ctx.contract.getContractInfo(contract.symbol);
 			if (contract_info.has_value()) {
 				if (contract_info.value().pending_details == false) { return RiskResult::pass(); }
@@ -37,7 +38,9 @@ struct ContractReady {
 
 template <typename RiskManagerT, bool RequireMktDetails = true, typename Retry = NoRetry>
 struct MktDataReady {
-	static RiskResult check(const Order&, const Contract& contract, const RiskContext<RiskManagerT>& ctx) {
+	static RiskResult check(const TradeRequest& request, const RiskContext<RiskManagerT>& ctx) {
+		const Contract &contract = request.context.contract;
+
 		if constexpr (RequireMktDetails) {
 			// If not subscribed
 			if (const bool has_sub = ctx.data.hasSubscribed(contract); !has_sub) {
@@ -60,7 +63,9 @@ struct MktDataReady {
 
 template <typename RiskManagerT, bool TradingHours = true>
 struct MarketIsOpen {
-	static RiskResult check(const Order&, const Contract& contract, const RiskContext<RiskManagerT>& ctx) {
+	static RiskResult check(const TradeRequest& request, const RiskContext<RiskManagerT>& ctx) {
+		const Contract &contract = request.context.contract;
+
 		if constexpr (TradingHours) {
 			const auto contract_info = ctx.contract.getContractInfo(contract.symbol);
 			if (contract_info.has_value()) {
@@ -76,15 +81,18 @@ struct MarketIsOpen {
 
 template <typename RiskManagerT, int MaxNotional, Side OrderSide>
 struct MaxOrderNotional {
-	static RiskResult check(const Order& order, const Contract& contract, const RiskContext<RiskManagerT>& ctx) {
+	static RiskResult check(const TradeRequest& request, const RiskContext<RiskManagerT>& ctx) {
 		double price{};
+		const Contract &contract = request.context.contract;
+		const Side &action = request.context.side;
+
 
 		if constexpr (OrderSide == Side::Buy) {
-			if (order.action != "BUY") return RiskResult::pass();
+			if (action != Side::Buy) return RiskResult::pass();
 			price = ctx.data.getAsk(contract);
 		}
 		else if constexpr (OrderSide == Side::Sell) {
-			if (order.action != "SELL") return RiskResult::pass();
+			if (action != Side::Sell) return RiskResult::pass();
 			price = ctx.data.getBid(contract);
 		}
 
@@ -92,8 +100,19 @@ struct MaxOrderNotional {
 			return RiskResult::pending("Market data missing for " + contract.symbol, RiskAction::RegisterMktData);
 		}
 
-		const double qty = DecimalFunctions::decimalToDouble(order.totalQuantity);
-		if (const double notional = price * qty; notional > MaxNotional) {
+		const double notional = std::visit([price](const auto& spec) -> double {
+			if constexpr (requires { spec.cash_qty; }) {
+				return spec.cash_qty;
+			}
+			else if constexpr (requires { spec.qty; }) {
+				return price * spec.qty;
+			}
+			else {
+				return 0.0;
+			}
+		}, request.trade_spec);
+
+		if (notional > MaxNotional) {
 			return RiskResult::reject(
 				"Order notional " + std::to_string(notional) + " exceeds max notional of " +
 				std::to_string(MaxNotional));

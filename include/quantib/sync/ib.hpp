@@ -21,6 +21,7 @@
 #include "quantib/core/order_manager.h"
 #include "quantib/core/position_manager.h"
 #include "quantib/core/strategy_manager.h"
+#include "quantib/options/option_chain.hpp"
 
 template <typename ProfileT>
 class IB {
@@ -107,7 +108,7 @@ public:
 	getContractDetailsSync(int reqId, const Contract& contract) const;
 
 	[[nodiscard]] std::optional<ContractDetails>
-	getContractDetails(const Contract& contract) const;
+	getContractDetails(const Contract& contract);
 
 	[[nodiscard]] std::optional<ContractDetails>
 	getContractDetails(const std::string& symbol) const;
@@ -129,10 +130,23 @@ public:
 	}
 
 	/* Orders */
-	void placeOrder(const Contract& contract, const Order& order) const {
-		auto future = risk_->validate(OrderIntent(contract, order));
-		const RiskResult result = future.get();
+	void placeOrder(const TradeRequest& request) const {
+		// First check whether trade request is approved by risk manager
+		// Then, create order from factory
+		OrderBatch batch = order_factory_->make(request);
 
+		// finally submit order
+		if (batch.isEmpty())
+			LOG_WARN_TAG(ORD_MGR, "Order batch is empty or not approved! Order not sent.");
+		orders_->send(batch);
+
+
+		//client_->placeOrder(getNextId(), contract, order);
+
+		/* OLD METHOD
+
+		// auto future = risk_->validate(contract);
+		// const RiskResult result = future.get();
 		if (result.decision == RiskDecision::Reject) {
 			LOG_WARN_TAG(RISK, "Order rejected for {}. Reason: {}", contract.symbol, result.reason);
 			return;
@@ -143,7 +157,8 @@ public:
 			return;
 		}
 
-		client_->placeOrder(getNextId(), contract, order);
+
+		*/
 	}
 
 	[[nodiscard]] std::optional<std::unordered_map<int, OpenOrders>*>
@@ -183,17 +198,33 @@ public:
 		data_->marketDataSub(contract, tick_list, snap, reg_snap);
 	}
 
+	std::optional<std::vector<OptionChain>> getOptionChainSync(const Contract& contract) {
+		std::optional<ContractInfo> contract_info = contract_->getContractInfo(contract.symbol);
+		obj_->create<std::vector<OptionChain>>();
+		if (contract_info.has_value()) {
+			auto result = hub_->wait_for<SecurityDefinitionOptionalParameterTag, std::vector<OptionChain>>([&]() {
+				client_->reqSecDefOptParams(getNextId(), contract.symbol, "", contract.secType,
+				                            contract_info.value().con_id);
+			});
+
+			return result;
+		}
+
+		return std::nullopt;
+	}
+
 protected:
 	void initializeManagers() {
 		// Managers
 		positions_ = std::make_unique<PositionManager>(*client_, *hub_, *obj_, *logger_);
-		order_factory_ = std::make_unique<OrderFactory<RiskManagerT>>(*logger_);
+		order_factory_ = std::make_unique<OrderFactory<RiskManagerT>>(*logger_, *obj_);
 		orders_ = std::make_unique<OrderManager<RiskManagerT>>(*client_, *hub_, *obj_, *logger_, *order_factory_);
 		data_ = std::make_unique<DataManager>(*client_, *hub_, *obj_, *logger_);
 		contract_ = std::make_unique<ContractManager>(*client_, *hub_, *obj_, *logger_);
 		risk_ = std::make_unique<RiskManagerT>(*client_, *hub_, *obj_, *logger_, *positions_, *orders_, *data_,
 		                                       *contract_);
 		risk_->start();
+		order_factory_->setRiskManager(*risk_);
 		strategy_ = std::make_unique<StrategyManager<StrategyManagerT, RiskManagerT>>(
 			*client_, *hub_, *obj_, *logger_, *risk_);
 		// bulletins_ = std::make_unique<BulletinManager>(*client_, *hub_, *obj_,
@@ -222,3 +253,5 @@ protected:
 	std::thread risk_thread_;
 	std::atomic_bool riskRunning_{false};
 };
+
+#include "ib.tpp"

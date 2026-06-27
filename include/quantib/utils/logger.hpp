@@ -7,7 +7,7 @@
 
 // I can enable tick logging to see all the ticks received from IB.
 // This is useful for debugging and testing
-// #define ENABLE_TICK_LOGGING
+#define ENABLE_TICK_LOGGING
 
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/stdout_color_sinks.h"

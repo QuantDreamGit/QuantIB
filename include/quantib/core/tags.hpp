@@ -94,5 +94,9 @@ struct MarketDataTypeTag : RequestTag {
 	static constexpr std::string_view name = "MarketDataTypeTag";
 };
 
+struct SecurityDefinitionOptionalParameterTag : RequestTag {
+	static constexpr std::string_view name = "SecurityDefinitionOptionalParameterTag";
+};
+
 // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 // Subscription objects
