@@ -1,4 +1,6 @@
 #include "quantib/core/data_manager.h"
+#include "quantib/core/object_hub.hpp"
+#include "quantib/core/tags.hpp"
 #include "quantib/wrappers/base_wrapper.hpp"
 #include "nameof.hpp"
 

@@ -12,7 +12,7 @@ int main() {
 	contract.secType = "STK";
 	contract.exchange = "SMART";
 	contract.currency = "USD";
-
+	// test
 	// Do a subscription to account summary and account update, then cancel the subscription
 	auto ib = std::make_unique<IB<DefaultProfile>>();
 	auto ok = ib->connect();

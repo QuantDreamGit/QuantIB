@@ -1,17 +1,14 @@
 #pragma once
 
-#include "Contract.h"
 #include "DefaultEWrapper.h"
-
-#include "quantib/core/tags.hpp"
-#include "quantib/network/connection.hpp"
-#include "quantib/utils/logger.hpp"
 
 #include <set>
 #include <string>
 #include <vector>
 
-#include "Execution.h"
+class BlockingHub;
+class ObjectHub;
+class Logger;
 
 // This class is used to override default wrapper functions
 class ResponseWrapper : public DefaultEWrapper {

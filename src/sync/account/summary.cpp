@@ -1,4 +1,6 @@
 #include "quantib/core/account.hpp"
+#include "quantib/core/object_hub.hpp"
+#include "quantib/core/tags.hpp"
 #include "quantib/wrappers/base_wrapper.hpp"
 
 void ResponseWrapper::accountSummary(const int reqId, const std::string& account, const std::string& tag,

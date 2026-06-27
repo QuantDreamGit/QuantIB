@@ -1,4 +1,5 @@
 #include "quantib/wrappers/base_wrapper.hpp"
+#include "quantib/utils/logger.hpp"
 
 #include <unordered_set>
 

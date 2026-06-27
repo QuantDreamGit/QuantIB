@@ -1,4 +1,6 @@
 #include "quantib/core/position_manager.h"
+#include "quantib/core/object_hub.hpp"
+#include "quantib/core/tags.hpp"
 #include "quantib/wrappers/base_wrapper.hpp"
 
 void ResponseWrapper::position(const std::string& account, const Contract& contract, Decimal position, double avgCost) {

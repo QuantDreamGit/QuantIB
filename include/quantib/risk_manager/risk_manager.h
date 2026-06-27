@@ -10,13 +10,15 @@
 #include "nameof.hpp"
 
 #include "Contract.h"
-#include "EClientSocket.h"
+#include "quantib/order/trade_request.h"
 #include "structs.h"
 
-#include "../core/object_hub.hpp"
-#include "quantib/network/connection.hpp"
 #include "quantib/utils/logger.hpp"
 #include "quantib/risk_manager/policies.h"
+
+class EClientSocket;
+class ObjectHub;
+class BlockingHub;
 
 template <typename Derived, typename... RiskPolicies>
 class RiskManager {

@@ -2,6 +2,7 @@
 #include "quantib/server/server.h"
 
 #include "quantib/order/order_types.hpp"
+#include "quantib/sync/ib.hpp"
 #include "nlohmann/json.hpp"
 
 template <typename ProfileT>

@@ -1,11 +1,14 @@
 #pragma once
 
 #include "retry.h"
-#include "quantib/core/contract_manager.h"
-#include "quantib/core/data_manager.h"
-#include "quantib/core/object_hub.hpp"
-#include "quantib/core/order_manager.h"
-#include "quantib/core/position_manager.h"
+
+class ObjectHub;
+class Logger;
+class DataManager;
+class PositionManager;
+class ContractManager;
+template <typename RiskManagerT>
+class OrderManager;
 
 template <typename RiskManagerT>
 struct RiskContext {

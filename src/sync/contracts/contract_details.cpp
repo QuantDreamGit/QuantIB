@@ -1,4 +1,7 @@
 #include "quantib/core/contract_manager.h"
+#include "quantib/core/object_hub.hpp"
+#include "quantib/core/tags.hpp"
+#include "quantib/network/connection.hpp"
 #include "quantib/wrappers/base_wrapper.hpp"
 
 void ResponseWrapper::contractDetails(int reqId, const ContractDetails& contractDetails) {

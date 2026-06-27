@@ -1,4 +1,7 @@
 #include "quantib/core/account.hpp"
+#include "quantib/core/object_hub.hpp"
+#include "quantib/core/tags.hpp"
+#include "quantib/network/connection.hpp"
 #include "quantib/wrappers/base_wrapper.hpp"
 
 void ResponseWrapper::updateAccountValue(const std::string& key, const std::string& val, const std::string& currency,

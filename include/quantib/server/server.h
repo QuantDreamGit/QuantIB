@@ -1,7 +1,10 @@
 #pragma once
 #include "httplib.h"
 
-#include "quantib/sync/ib.hpp"
+#include <string>
+
+template <typename ProfileT>
+class IB;
 
 template <typename ProfileT>
 class HttpServerIB {
