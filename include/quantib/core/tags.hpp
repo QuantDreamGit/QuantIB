@@ -40,6 +40,10 @@ struct MarketDataStoreTag : PermanentTag {
 	static constexpr std::string_view name = "MarketDataStoreTag";
 };
 
+struct HistoricalDataStoreTag : PermanentTag {
+	static constexpr std::string_view name = "HistoricalDataStoreTag";
+};
+
 struct AccountSummaryStoreTag : PermanentTag {
 	static constexpr std::string_view name = "AccountSummaryTag";
 };

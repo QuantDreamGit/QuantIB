@@ -18,6 +18,7 @@
 #include "quantib/core/bulletin_manager.h"
 #include "quantib/core/contract_manager.h"
 #include "quantib/core/data_manager.h"
+#include "quantib/core/historical_data_manager.h"
 #include "quantib/core/order_manager.h"
 #include "quantib/core/position_manager.h"
 #include "quantib/core/strategy_manager.h"
@@ -139,26 +140,6 @@ public:
 		if (batch.isEmpty())
 			LOG_WARN_TAG(ORD_MGR, "Order batch is empty or not approved! Order not sent.");
 		orders_->send(batch);
-
-
-		//client_->placeOrder(getNextId(), contract, order);
-
-		/* OLD METHOD
-
-		// auto future = risk_->validate(contract);
-		// const RiskResult result = future.get();
-		if (result.decision == RiskDecision::Reject) {
-			LOG_WARN_TAG(RISK, "Order rejected for {}. Reason: {}", contract.symbol, result.reason);
-			return;
-		}
-
-		if (result.decision == RiskDecision::Pending) {
-			LOG_WARN_TAG(RISK, "Order still pending for {}. Reason: {}", contract.symbol, result.reason);
-			return;
-		}
-
-
-		*/
 	}
 
 	[[nodiscard]] std::optional<std::unordered_map<int, OpenOrders>*>
@@ -213,6 +194,16 @@ public:
 		return std::nullopt;
 	}
 
+	void requestHistoricalBars(const Contract& contract, const std::string& end_datetime, const std::string& duration,
+	                           const std::string& bar_size, const std::string& what_to_show) {
+		historical_data_->requestHistoricalBars(contract, end_datetime, duration, bar_size, what_to_show, false);
+	}
+
+	void subscribeHistoricalBars(const Contract& contract, const std::string& end_datetime, const std::string& duration,
+	                             const std::string& bar_size, const std::string& what_to_show) {
+		historical_data_->requestHistoricalBars(contract, end_datetime, duration, bar_size, what_to_show, true);
+	}
+
 protected:
 	void initializeManagers() {
 		// Managers
@@ -220,6 +211,8 @@ protected:
 		order_factory_ = std::make_unique<OrderFactory<RiskManagerT>>(*logger_, *obj_);
 		orders_ = std::make_unique<OrderManager<RiskManagerT>>(*client_, *hub_, *obj_, *logger_, *order_factory_);
 		data_ = std::make_unique<DataManager>(*client_, *hub_, *obj_, *logger_);
+		historical_data_ = &obj_->create<HistoricalDataStoreTag, HistoricalDataManager>(
+			*client_, *hub_, *obj_, *logger_);
 		contract_ = std::make_unique<ContractManager>(*client_, *hub_, *obj_, *logger_);
 		risk_ = std::make_unique<RiskManagerT>(*client_, *hub_, *obj_, *logger_, *positions_, *orders_, *data_,
 		                                       *contract_);
@@ -248,6 +241,7 @@ protected:
 	std::unique_ptr<PositionManager> positions_;
 	std::unique_ptr<NewsManager> bulletins_;
 	std::unique_ptr<DataManager> data_;
+	HistoricalDataManager* historical_data_ = nullptr;
 	std::unique_ptr<ContractManager> contract_;
 	// std::unique_ptr<RequestId> requestId_;
 	std::thread risk_thread_;

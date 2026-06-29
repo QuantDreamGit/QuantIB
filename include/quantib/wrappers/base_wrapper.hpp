@@ -82,6 +82,16 @@ public:
 	                           double optPrice, double pvDividend, double gamma, double vega, double theta,
 	                           double undPrice) override;
 
+	void historicalData(int reqId, const Bar& bar) override;
+
+	void historicalSchedule(int reqId, const std::string& startDateTime, const std::string& endDateTime, const std::string& timeZone, const std::vector<HistoricalSession>& sessions) override;
+
+	void historicalDataUpdate(int reqId, const Bar& bar) override;
+
+	void historicalDataEnd(int reqId, const std::string& startDateStr, const std::string& endDateStr) override;
+
+	void headTimestamp(int reqId, const std::string& headTimestamp) override;
+
 	void securityDefinitionOptionalParameter(int reqId, const std::string& exchange, int underlyingConId,
 	                                         const std::string& tradingClass, const std::string& multiplier,
 	                                         const std::set<std::string>& expirations,
