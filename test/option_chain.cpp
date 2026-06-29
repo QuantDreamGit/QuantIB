@@ -24,23 +24,24 @@ int main() {
 	// Get a specific exchange from above
 	std::optional<OptionChain> optChain = OptionChain::getExchangeFromOptionChain(entireOptionChain.value(), "SMART");
 	// Get a fixed number of exp and strike from exp date and current price
+	std::pair<std::vector<std::string>, std::vector<double>> exp_strk;
 	if (optChain.has_value()) {
-		std::pair<std::vector<std::string>, std::vector<double>> exp_strk = optChain.value().getFromNearestDate(1, 3, 282.5);
+		exp_strk = optChain.value().getFromNearestDate(1, 3, 282.5);
 	}
 
-	//test comment
-
 	// Then register instrument in a single exchange to get greeks
-	if (entireOptionChain.has_value()) {
-		double strike = *entireOptionChain.value()[0].strikes.begin();
-		std::string expires = *entireOptionChain.value()[0].expirations.begin();
-		contract.strike = strike;
-		contract.lastTradeDateOrContractMonth = expires;
+	if (optChain.has_value() && !exp_strk.first.empty() && !exp_strk.second.empty()) {
 		contract.secType = "OPT";
 		contract.right = "C";
 		contract.exchange = "SMART";
 		contract.multiplier = "100";
-		ib->registerMarketData(contract);
+		for (const auto &exp : exp_strk.first) {
+			for (const auto strike : exp_strk.second) {
+				contract.strike = strike;
+				contract.lastTradeDateOrContractMonth = exp;
+				ib->registerMarketData(contract);
+			}
+		}
 	}
 
 
