@@ -194,14 +194,30 @@ public:
 		return std::nullopt;
 	}
 
-	void requestHistoricalBars(const Contract& contract, const std::string& end_datetime, const std::string& duration,
+	/*
+	std::optional<HistoricalSeriesSnapshot> requestHistoricalBars(const Contract& contract, const std::string& end_datetime, const std::string& duration,
 	                           const std::string& bar_size, const std::string& what_to_show) {
-		historical_data_->requestHistoricalBars(contract, end_datetime, duration, bar_size, what_to_show, false);
+		return hub_->wait_for<HistMarketDataTag, HistoricalSeriesSnapshot>([&]() {
+			historical_data_->requestHistoricalBars(contract, end_datetime, duration, bar_size, what_to_show);
+		});
+	}
+	*/
+
+	int subscribeHistoricalBars(const Contract& contract, const std::string& end_datetime, const std::string& duration,
+	                             const std::string& bar_size, const std::string& what_to_show) const {
+		return historical_data_->subscribeHistoricalBars(contract, end_datetime, duration, bar_size, what_to_show);
 	}
 
-	void subscribeHistoricalBars(const Contract& contract, const std::string& end_datetime, const std::string& duration,
-	                             const std::string& bar_size, const std::string& what_to_show) {
-		historical_data_->requestHistoricalBars(contract, end_datetime, duration, bar_size, what_to_show, true);
+	void setOnBarClosed(const BarClosedCallback& callback) const { historical_data_->onBarClosed(callback); }
+
+	void setOnBarUpdate(const BarUpdateCallback& callback) const { historical_data_->onBarUpdate(callback); }
+
+	void setOnBarSeriesComplete(const BarSeriesCompleteCallback& callback) const {
+		historical_data_->onBarSeriesComplete(callback);
+	}
+
+	std::optional<HistoricalSeriesSnapshot> getHistoricalSnapshot(const int req_id) {
+		return historical_data_->snapshot(req_id);
 	}
 
 protected:
@@ -211,8 +227,7 @@ protected:
 		order_factory_ = std::make_unique<OrderFactory<RiskManagerT>>(*logger_, *obj_);
 		orders_ = std::make_unique<OrderManager<RiskManagerT>>(*client_, *hub_, *obj_, *logger_, *order_factory_);
 		data_ = std::make_unique<DataManager>(*client_, *hub_, *obj_, *logger_);
-		historical_data_ = &obj_->create<HistoricalDataStoreTag, HistoricalDataManager>(
-			*client_, *hub_, *obj_, *logger_);
+		historical_data_ = std::make_unique<HistoricalDataManager>(*client_, *hub_, *obj_, *logger_);
 		contract_ = std::make_unique<ContractManager>(*client_, *hub_, *obj_, *logger_);
 		risk_ = std::make_unique<RiskManagerT>(*client_, *hub_, *obj_, *logger_, *positions_, *orders_, *data_,
 		                                       *contract_);
@@ -241,7 +256,7 @@ protected:
 	std::unique_ptr<PositionManager> positions_;
 	std::unique_ptr<NewsManager> bulletins_;
 	std::unique_ptr<DataManager> data_;
-	HistoricalDataManager* historical_data_ = nullptr;
+	std::unique_ptr<HistoricalDataManager> historical_data_;
 	std::unique_ptr<ContractManager> contract_;
 	// std::unique_ptr<RequestId> requestId_;
 	std::thread risk_thread_;

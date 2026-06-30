@@ -105,7 +105,7 @@ public:
 		// Here we have to differentiate betweenubscription feeds or sync request.
 		// Tags are derived from two base classes that indicates their types.
 		auto key = std::type_index(typeid(Tag));
-		if (std::is_base_of_v<RequestTag, Tag>) {
+		if constexpr (std::is_base_of_v<RequestTag, Tag>) {
 			// Sync request handling
 			{
 				std::lock_guard<std::mutex> lk(mtx_);
@@ -114,16 +114,9 @@ public:
 			}
 			cv_.notify_all();
 		}
-		else if (std::is_base_of_v<SubscriptionTag, Tag>) {
+		else if constexpr (std::is_base_of_v<SubscriptionTag, Tag>) {
 			std::lock_guard<std::mutex> lk(mtx_);
-			// Check if object has been created yet
-			// if (isReady_[key] == false) {
-			// Then Create object
-			// obj_->insert<T>(key, std::move(value));
-			// isReady_[key] = true;
-			// } else {
 			obj_.update_or_create<Tag, T>(std::forward<T>(value));
-			// }
 		}
 	}
 

@@ -2,10 +2,15 @@
 #include <string_view>
 
 // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+// Callback tag		-> Callback functions used typically in base wrapper
 // Request tag		-> automatically deleted after response is received;
 // Subscription tag -> automatically deleted after subscription is canceled;
 // Permanent tag	-> never deleted, used for storing data that should be available
 //					   throughout the program's lifetime;
+struct CallbackTag {
+	static constexpr std::string_view category = "callback";
+};
+
 struct RequestTag {
 	static constexpr std::string_view category = "request";
 };
@@ -98,9 +103,31 @@ struct MarketDataTypeTag : RequestTag {
 	static constexpr std::string_view name = "MarketDataTypeTag";
 };
 
+struct HistMarketDataTag : RequestTag {
+	static constexpr std::string_view name = "HistMarketDataTag";
+};
+
 struct SecurityDefinitionOptionalParameterTag : RequestTag {
 	static constexpr std::string_view name = "SecurityDefinitionOptionalParameterTag";
 };
 
 // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 // Subscription objects
+
+// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+// Callback functions
+struct onBarClosedTag : CallbackTag {
+	static constexpr std::string_view name = "onBarClosedTag";
+};
+
+struct onBarUpdateTag : CallbackTag {
+	static constexpr std::string_view name = "onBarUpdateTag";
+};
+
+struct onBarUpdateCompleteTag : CallbackTag {
+	static constexpr std::string_view name = "onBarUpdateCompleteTag";
+};
+
+struct onBarSeriesCompleteTag : CallbackTag {
+	static constexpr std::string_view name = "onBarSeriesCompleteTag";
+};
